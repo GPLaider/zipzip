@@ -13,6 +13,7 @@ namespace ZipZip.App.Views;
 
 public sealed partial class ArchivePage : Page
 {
+    private string? _archivePassword;
     private ArchiveViewModel ViewModel => (ArchiveViewModel)DataContext;
 
     public ArchivePage()
@@ -27,21 +28,7 @@ public sealed partial class ArchivePage : Page
 
         if (e.Parameter is string archivePath && !string.IsNullOrWhiteSpace(archivePath))
         {
-            await ViewModel.LoadAsync(App.Services.OpenArchive, archivePath);
-
-            if (!ViewModel.HasError)
-            {
-                App.MainWindowInstance?.SetWindowTitle($"{ViewModel.ArchiveName} - ZipZip");
-
-                try
-                {
-                    await App.Services.UserPreferences.AddRecentArchiveAsync(archivePath);
-                }
-                catch (Exception ex)
-                {
-                    ViewModel.SetError(ex.Message);
-                }
-            }
+            await LoadArchiveWithPasswordRetryAsync(archivePath, addToRecents: true);
         }
     }
 
@@ -84,7 +71,7 @@ public sealed partial class ArchivePage : Page
         var selectedItems = GetSelectedItems();
         if (selectedItems.Count == 0)
         {
-            ViewModel.SetOperationInfo("\uBA3C\uC800 \uD56D\uBAA9\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.");
+            ViewModel.SetOperationInfo("먼저 항목을 선택해 주세요.");
             return;
         }
 
@@ -161,7 +148,7 @@ public sealed partial class ArchivePage : Page
 
         e.AcceptedOperation = DataPackageOperation.Copy;
         e.DragUIOverride.IsCaptionVisible = true;
-        e.DragUIOverride.Caption = "\uB193\uC73C\uBA74 \uC5F4\uAC70\uB098 \uC0C8 \uC555\uCD95\uC744 \uC2DC\uC791\uD569\uB2C8\uB2E4.";
+        e.DragUIOverride.Caption = "놓으면 열거나 새 압축을 시작합니다.";
     }
 
     private async void OnRootDrop(object sender, DragEventArgs e)
@@ -180,7 +167,7 @@ public sealed partial class ArchivePage : Page
         var package = new DataPackage();
         package.SetText(string.Join(Environment.NewLine, selectedItems.Select(item => item.InternalPath)));
         Clipboard.SetContent(package);
-        ViewModel.SetOperationInfo($"\uC120\uD0DD\uD55C {selectedItems.Count}\uAC1C \uD56D\uBAA9 \uACBD\uB85C\uB97C \uBCF5\uC0AC\uD588\uC2B5\uB2C8\uB2E4.");
+        ViewModel.SetOperationInfo($"선택한 {selectedItems.Count}개 항목 경로를 복사했습니다.");
         args.Handled = true;
     }
 
@@ -195,7 +182,7 @@ public sealed partial class ArchivePage : Page
         var paths = await IncomingItemService.GetPathsAsync(dataView);
         if (paths.Count == 0)
         {
-            ViewModel.SetOperationInfo("\uD30C\uC77C\uC774\uB098 \uD3F4\uB354\uB9CC \uBD99\uC5EC\uB123\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
+            ViewModel.SetOperationInfo("파일이나 폴더만 붙여넣을 수 있습니다.");
             return;
         }
 
@@ -207,20 +194,21 @@ public sealed partial class ArchivePage : Page
 
     private async Task ExecuteExtractionWithPasswordRetryAsync(ExtractionOptions options, int selectedCount)
     {
-        var currentOptions = options with { Password = null };
-        var completedFolderPath = SevenZipArchiveBackend.ResolveExtractionDestinationPath(ViewModel.ArchivePath, currentOptions);
-        var promptMessage = "\uC554\uD638\uAC00 \uD544\uC694\uD55C \uC555\uCD95 \uD30C\uC77C\uC785\uB2C8\uB2E4. \uC554\uD638\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.";
+        var currentOptions = PrepareExtractionOptions(options);
+        var completedFolderPath = currentOptions.DestinationPath;
+        var promptMessage = "암호가 필요한 압축 파일입니다. 암호를 입력해 주세요.";
 
         while (true)
         {
             try
             {
                 await App.Services.ExtractArchive.ExecuteAsync(ViewModel.ArchivePath, currentOptions);
-                await ViewModel.LoadAsync(App.Services.OpenArchive, ViewModel.ArchivePath);
-                App.MainWindowInstance?.SetWindowTitle($"{ViewModel.ArchiveName} - ZipZip");
-                ViewModel.SetOperationSuccess(selectedCount == 0
-                    ? "\uC555\uCD95 \uD480\uAE30\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4."
-                    : $"\uC120\uD0DD\uD55C {selectedCount}\uAC1C \uD56D\uBAA9\uC744 \uD480\uC5C8\uC2B5\uB2C8\uB2E4.",
+                _archivePassword = currentOptions.Password;
+                await LoadArchiveWithPasswordRetryAsync(ViewModel.ArchivePath, addToRecents: false);
+                ViewModel.SetOperationSuccess(
+                    selectedCount == 0
+                        ? "압축 풀기가 완료되었습니다."
+                        : $"선택한 {selectedCount}개 항목을 풀었습니다.",
                     completedFolderPath);
                 return;
             }
@@ -229,12 +217,12 @@ public sealed partial class ArchivePage : Page
                 var password = await RequestPasswordAsync(promptMessage);
                 if (password is null)
                 {
-                    ViewModel.SetOperationInfo("\uC555\uCD95 \uD480\uAE30\uB97C \uCDE8\uC18C\uD588\uC2B5\uB2C8\uB2E4.");
+                    ViewModel.SetOperationInfo("압축 풀기를 취소했습니다.");
                     return;
                 }
 
                 currentOptions = currentOptions with { Password = password };
-                promptMessage = "\uC554\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC785\uB825\uD574 \uC8FC\uC138\uC694.";
+                promptMessage = "암호가 올바르지 않습니다. 다시 입력해 주세요.";
             }
             catch (Exception ex)
             {
@@ -261,4 +249,73 @@ public sealed partial class ArchivePage : Page
         return SevenZipErrorClassifier.RequiresPassword(exception.Message);
     }
 
+    private async Task LoadArchiveWithPasswordRetryAsync(string archivePath, bool addToRecents)
+    {
+        var currentPassword = _archivePassword;
+        var promptMessage = "암호가 필요한 압축 파일입니다. 암호를 입력해 주세요.";
+
+        while (true)
+        {
+            try
+            {
+                await ViewModel.LoadAsync(
+                    App.Services.OpenArchive,
+                    archivePath,
+                    currentPassword,
+                    rethrowOnError: true);
+
+                _archivePassword = currentPassword;
+                App.MainWindowInstance?.SetWindowTitle($"{ViewModel.ArchiveName} - ZipZip");
+
+                if (!addToRecents)
+                {
+                    return;
+                }
+
+                try
+                {
+                    await App.Services.UserPreferences.AddRecentArchiveAsync(archivePath);
+                }
+                catch (Exception ex)
+                {
+                    ViewModel.SetError(ex.Message);
+                }
+
+                return;
+            }
+            catch (Exception ex) when (NeedsPassword(ex))
+            {
+                var password = await RequestPasswordAsync(promptMessage);
+                if (password is null)
+                {
+                    App.MainWindowInstance?.ShowHome();
+                    return;
+                }
+
+                currentPassword = password;
+                promptMessage = "암호가 올바르지 않습니다. 다시 입력해 주세요.";
+            }
+            catch
+            {
+                return;
+            }
+        }
+    }
+
+    private ExtractionOptions PrepareExtractionOptions(ExtractionOptions options)
+    {
+        var effectivePassword = string.IsNullOrWhiteSpace(options.Password)
+            ? _archivePassword
+            : options.Password;
+        var destinationPath = SevenZipArchiveBackend.ResolveExtractionDestinationPath(
+            ViewModel.ArchivePath,
+            options with { Password = effectivePassword });
+
+        return options with
+        {
+            DestinationPath = destinationPath,
+            CreateNewFolder = false,
+            Password = effectivePassword,
+        };
+    }
 }

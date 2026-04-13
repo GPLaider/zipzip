@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using ZipZip.Application.UseCases;
 using ZipZip.ArchiveAdapters.SevenZip;
 using ZipZip.Domain.Models;
-using System.Windows.Forms;
 
 namespace ZipZip.ShellExtension;
 
@@ -13,7 +13,7 @@ public static class Program
     {
         if (args.Length == 0)
         {
-            ShowError("ZipZip \uC178 \uB3C4\uC6B0\uBBF8", "\uC2E4\uD589\uD560 \uC791\uC5C5\uC774 \uC9C0\uC815\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.");
+            ShowError("ZipZip 셸 도우미", "실행할 작업이 지정되지 않았습니다.");
             return 1;
         }
 
@@ -28,7 +28,7 @@ public static class Program
                 case "register":
                     registration.Register(
                         ResolveAppExecutablePath(args),
-                        Environment.ProcessPath ?? throw new InvalidOperationException("\uC178 \uB3C4\uC6B0\uBBF8 \uACBD\uB85C\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."),
+                        Environment.ProcessPath ?? throw new InvalidOperationException("셸 도우미 경로를 확인할 수 없습니다."),
                         ParseShellMenuOptions(args.Skip(2).ToArray()));
                     return 0;
 
@@ -51,18 +51,18 @@ public static class Program
                     return 0;
 
                 default:
-                    ShowError("ZipZip \uC178 \uB3C4\uC6B0\uBBF8", $"\uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 \uC791\uC5C5\uC785\uB2C8\uB2E4: {args[0]}");
+                    ShowError("ZipZip 셸 도우미", $"지원하지 않는 작업입니다: {args[0]}");
                     return 1;
             }
         }
         catch (Exception ex) when (NeedsPassword(ex))
         {
-            ShowError("ZipZip \uC791\uC5C5 \uC2E4\uD328", "\uC554\uD638\uAC00 \uD544\uC694\uD55C \uC555\uCD95 \uD30C\uC77C\uC785\uB2C8\uB2E4. ZipZip\uC5D0\uC11C \uD30C\uC77C\uC744 \uC5F4 \uB4A4 \uC554\uD638\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.");
+            ShowError("ZipZip 작업 실패", "암호가 필요한 압축 파일입니다. 다시 시도해서 암호를 입력해 주세요.");
             return 1;
         }
         catch (Exception ex)
         {
-            ShowError("ZipZip \uC791\uC5C5 \uC2E4\uD328", ex.Message);
+            ShowError("ZipZip 작업 실패", ex.Message);
             return 1;
         }
     }
@@ -74,7 +74,7 @@ public static class Program
             return args[1];
         }
 
-        throw new InvalidOperationException("ZipZip \uC571 \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+        throw new InvalidOperationException("ZipZip 앱 경로가 필요합니다.");
     }
 
     private static ShellRegistrationService.ShellMenuRegistrationOptions ParseShellMenuOptions(IReadOnlyList<string> args)
@@ -122,16 +122,17 @@ public static class Program
         var parentDirectory = Path.GetDirectoryName(archivePath);
         if (string.IsNullOrWhiteSpace(parentDirectory))
         {
-            throw new InvalidOperationException("\uC555\uCD95 \uD30C\uC77C \uACBD\uB85C\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+            throw new InvalidOperationException("압축 파일 경로를 확인할 수 없습니다.");
         }
 
         System.Windows.Forms.Application.EnableVisualStyles();
         System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 
-        var options = new ExtractionOptions(
+        var requestedOptions = new ExtractionOptions(
             DestinationPath: parentDirectory,
             CreateNewFolder: createNewFolder,
             OverwriteExisting: false);
+        var options = PrepareExtractionOptions(archivePath, requestedOptions);
 
         using var progressForm = new ShellExtractProgressForm(archivePath);
         using var cancellationSource = new CancellationTokenSource();
@@ -141,25 +142,42 @@ public static class Program
 
         progressForm.Shown += async (_, _) =>
         {
+            var currentOptions = options;
+            var promptMessage = "암호가 필요한 압축 파일입니다. 암호를 입력해 주세요.";
+
             try
             {
-                var progress = new Progress<ShellExtractProgressUpdate>(progressForm.ApplyProgress);
-                var completedFolderPath = await runner.ExtractAsync(
-                    archivePath,
-                    options,
-                    progress,
-                    cancellationSource.Token);
+                while (true)
+                {
+                    try
+                    {
+                        var progress = new Progress<ShellExtractProgressUpdate>(progressForm.ApplyProgress);
+                        var completedFolderPath = await runner.ExtractAsync(
+                            archivePath,
+                            currentOptions,
+                            progress,
+                            cancellationSource.Token);
 
-                progressForm.CompleteSuccess(completedFolderPath);
+                        progressForm.CompleteSuccess(completedFolderPath);
+                        return;
+                    }
+                    catch (Exception ex) when (NeedsPassword(ex))
+                    {
+                        var password = PasswordPromptForm.ShowDialog(progressForm, promptMessage);
+                        if (password is null)
+                        {
+                            progressForm.CompleteCanceled();
+                            return;
+                        }
+
+                        currentOptions = currentOptions with { Password = password };
+                        promptMessage = "암호가 올바르지 않습니다. 다시 입력해 주세요.";
+                    }
+                }
             }
             catch (OperationCanceledException)
             {
                 progressForm.CompleteCanceled();
-            }
-            catch (Exception ex) when (NeedsPassword(ex))
-            {
-                progressForm.CompleteFailure(
-                    "\uC554\uD638\uAC00 \uD544\uC694\uD55C \uC555\uCD95 \uD30C\uC77C\uC785\uB2C8\uB2E4. ZipZip\uC5D0\uC11C \uD30C\uC77C\uC744 \uC5F4 \uB4A4 \uC554\uD638\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.");
             }
             catch (Exception ex)
             {
@@ -190,7 +208,7 @@ public static class Program
         var inputPaths = args.Skip(1).Where(path => !string.IsNullOrWhiteSpace(path)).ToArray();
         if (inputPaths.Length == 0)
         {
-            throw new InvalidOperationException("\uB300\uC0C1 \uD30C\uC77C\uC774\uB098 \uD3F4\uB354\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+            throw new InvalidOperationException("대상 파일이나 폴더가 필요합니다.");
         }
 
         return inputPaths;
@@ -200,7 +218,7 @@ public static class Program
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            throw new InvalidOperationException("\uB300\uC0C1 \uD30C\uC77C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+            throw new InvalidOperationException("대상 파일 경로가 필요합니다.");
         }
 
         return args[1];
@@ -238,7 +256,7 @@ public static class Program
         var directory = Path.GetDirectoryName(inputPath);
         if (string.IsNullOrWhiteSpace(directory))
         {
-            throw new InvalidOperationException("\uCD9C\uB825 \uD3F4\uB354\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+            throw new InvalidOperationException("출력 폴더를 찾을 수 없습니다.");
         }
 
         return directory;
@@ -263,6 +281,16 @@ public static class Program
     private static bool NeedsPassword(Exception exception)
     {
         return SevenZipErrorClassifier.RequiresPassword(exception.Message);
+    }
+
+    private static ExtractionOptions PrepareExtractionOptions(string archivePath, ExtractionOptions options)
+    {
+        var destinationPath = SevenZipArchiveBackend.ResolveExtractionDestinationPath(archivePath, options);
+        return options with
+        {
+            DestinationPath = destinationPath,
+            CreateNewFolder = false,
+        };
     }
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
