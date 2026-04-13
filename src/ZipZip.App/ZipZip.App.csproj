@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <AssemblyName>ZipZip.App</AssemblyName>
+    <ApplicationIcon>Assets\App\ZipZip.ico</ApplicationIcon>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <AppxPackage>false</AppxPackage>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <RootNamespace>ZipZip.App</RootNamespace>
+    <WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>
+    <WindowsAppSdkBootstrapInitialize Condition="'$(WindowsAppSDKSelfContained)' == 'true'">false</WindowsAppSdkBootstrapInitialize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250310001" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZipZip.Application\ZipZip.Application.csproj" />
+    <ProjectReference Include="..\ZipZip.ArchiveAdapters\ZipZip.ArchiveAdapters.csproj" />
+    <ProjectReference Include="..\ZipZip.Domain\ZipZip.Domain.csproj" />
+    <ProjectReference Include="..\ZipZip.Infrastructure\ZipZip.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

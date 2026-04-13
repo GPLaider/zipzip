@@ -1,0 +1,47 @@
+<ContentDialog
+    x:Class="ZipZip.App.Views.Dialogs.ExtractDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="&#xC555;&#xCD95; &#xD480;&#xAE30;"
+    CloseButtonText="&#xCDE8;&#xC18C;"
+    PrimaryButtonText="&#xD480;&#xAE30;"
+    DefaultButton="Primary"
+    MinWidth="680">
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        MaxHeight="420"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Auto">
+        <StackPanel Padding="0,0,8,0" Spacing="8">
+            <StackPanel Spacing="4">
+                <TextBlock FontWeight="SemiBold" Text="&#xD480;&#xAE30; &#xC704;&#xCE58;" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox
+                        x:Name="DestinationPathTextBox"
+                        PlaceholderText="&#xC555;&#xCD95;&#xC744; &#xD480; &#xD3F4;&#xB354;&#xB97C; &#xC120;&#xD0DD;&#xD574; &#xC8FC;&#xC138;&#xC694;."
+                        Style="{StaticResource ZipZipTextBoxStyle}" />
+
+                    <Button
+                        Grid.Column="1"
+                        Click="OnBrowseClick"
+                        Content="&#xCC3E;&#xC544;&#xBCF4;&#xAE30;"
+                        Style="{StaticResource ZipZipSecondaryButtonStyle}" />
+                </Grid>
+            </StackPanel>
+
+            <CheckBox
+                x:Name="CreateNewFolderCheckBox"
+                Content="&#xC0C8; &#xD3F4;&#xB354;&#xC5D0; &#xD480;&#xAE30;"
+                IsChecked="True" />
+            <CheckBox
+                x:Name="OverwriteExistingCheckBox"
+                Content="&#xAE30;&#xC874; &#xD30C;&#xC77C; &#xB36E;&#xC5B4;&#xC4F0;&#xAE30;" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

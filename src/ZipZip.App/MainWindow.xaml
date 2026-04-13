@@ -1,0 +1,38 @@
+<Window
+    x:Class="ZipZip.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    Title="ZipZip">
+    <Grid Background="{ThemeResource ZipZipWindowBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:MenuBar
+            Grid.Row="0"
+            Background="{ThemeResource ZipZipToolbarBrush}"
+            BorderBrush="{ThemeResource ZipZipStrokeBrush}"
+            BorderThickness="0,0,0,1">
+            <controls:MenuBarItem Title="&#xD30C;&#xC77C;">
+                <MenuFlyoutItem Click="OnOpenArchiveMenuClick" Text="&#xC555;&#xCD95; &#xD30C;&#xC77C; &#xC5F4;&#xAE30;..." />
+                <MenuFlyoutItem Click="OnCreateArchiveMenuClick" Text="&#xC0C8;&#xB85C; &#xC555;&#xCD95;&#xD558;&#xAE30;..." />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Click="OnSettingsMenuClick" Text="&#xC124;&#xC815;" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Click="OnExitMenuClick" Text="&#xB05D;&#xB0B4;&#xAE30;" />
+            </controls:MenuBarItem>
+
+            <controls:MenuBarItem Title="&#xBCF4;&#xAE30;">
+                <MenuFlyoutItem Click="OnShowHomeMenuClick" Text="&#xD648;" />
+                <MenuFlyoutItem Click="OnGoBackMenuClick" Text="&#xB4A4;&#xB85C;" />
+                <MenuFlyoutItem Click="OnToggleThemeMenuClick" Text="&#xD14C;&#xB9C8; &#xC804;&#xD658;" />
+            </controls:MenuBarItem>
+        </controls:MenuBar>
+
+        <controls:Frame
+            Grid.Row="1"
+            x:Name="RootFrame" />
+    </Grid>
+</Window>

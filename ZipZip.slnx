@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ZipZip.App/ZipZip.App.csproj" />
+    <Project Path="src/ZipZip.Application/ZipZip.Application.csproj" />
+    <Project Path="src/ZipZip.ArchiveAdapters/ZipZip.ArchiveAdapters.csproj" />
+    <Project Path="src/ZipZip.Domain/ZipZip.Domain.csproj" />
+    <Project Path="src/ZipZip.Infrastructure/ZipZip.Infrastructure.csproj" />
+    <Project Path="src/ZipZip.ShellExtension/ZipZip.ShellExtension.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ZipZip.Application.Tests/ZipZip.Application.Tests.csproj" />
+    <Project Path="tests/ZipZip.ArchiveAdapters.Tests/ZipZip.ArchiveAdapters.Tests.csproj" />
+  </Folder>
+</Solution>

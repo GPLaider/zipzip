@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>ZipZip.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZipZip.Application\ZipZip.Application.csproj" />
+    <ProjectReference Include="..\ZipZip.Domain\ZipZip.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

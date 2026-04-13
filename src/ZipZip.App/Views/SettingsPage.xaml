@@ -1,0 +1,293 @@
+<Page
+    x:Class="ZipZip.App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ZipZipWindowBackgroundBrush}">
+
+    <Page.Resources>
+        <Style x:Key="SettingsNavButtonStyle" TargetType="Button" BasedOn="{StaticResource ZipZipSecondaryButtonStyle}">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style x:Key="SettingsNavButtonSelectedStyle" TargetType="Button" BasedOn="{StaticResource SettingsNavButtonStyle}">
+            <Setter Property="Background" Value="{ThemeResource ZipZipBrandSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource ZipZipBrandBrush}" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="Foreground" Value="{ThemeResource ZipZipBrandStrongBrush}" />
+        </Style>
+
+        <Style x:Key="SettingsGroupBorderStyle" TargetType="Border" BasedOn="{StaticResource ZipZipPanelBorderStyle}">
+            <Setter Property="Padding" Value="14" />
+        </Style>
+
+        <Style x:Key="SettingsFooterBorderStyle" TargetType="Border" BasedOn="{StaticResource ZipZipPanelBorderStyle}">
+            <Setter Property="Background" Value="{ThemeResource ZipZipSurfaceMutedBrush}" />
+            <Setter Property="Padding" Value="10" />
+        </Style>
+
+        <Style x:Key="SettingsSectionHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource ZipZipSectionTitleStyle}">
+            <Setter Property="FontSize" Value="17" />
+        </Style>
+    </Page.Resources>
+
+    <Grid ColumnSpacing="14" Padding="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="188" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Style="{StaticResource ZipZipPanelBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Padding="12,14,12,10" Spacing="6">
+                    <Button Click="OnBackClick" Style="{StaticResource ZipZipToolbarButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE72B;" />
+                            <TextBlock Text="뒤로" />
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="설정" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Padding="8,6,8,8" Spacing="4">
+                    <Button x:Name="ThemeSectionButton" Click="OnSectionTabClick" Style="{StaticResource SettingsNavButtonStyle}" Tag="Theme">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE706;" />
+                            <TextBlock Text="테마" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="CompressionSectionButton" Click="OnSectionTabClick" Style="{StaticResource SettingsNavButtonStyle}" Tag="Compression">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE7B8;" />
+                            <TextBlock Text="기본 압축" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="FileAssociationsSectionButton" Click="OnSectionTabClick" Style="{StaticResource SettingsNavButtonStyle}" Tag="Associations">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8A5;" />
+                            <TextBlock Text="파일 연결" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ExplorerMenusSectionButton" Click="OnSectionTabClick" Style="{StaticResource SettingsNavButtonStyle}" Tag="ExplorerMenus">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8B7;" />
+                            <TextBlock Text="탐색기 메뉴" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <InfoBar x:Name="SettingsInfoBar" Grid.Row="0" Margin="0,0,0,10" IsOpen="False" />
+
+            <Grid Grid.Row="1">
+                <Grid x:Name="ThemeSection" MaxWidth="760" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="테마" />
+
+                    <StackPanel Grid.Row="1" Margin="0,16,0,0" Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="ThemeSystemButton" Click="OnThemeChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="System">
+                            <TextBlock Text="시스템" />
+                        </Button>
+                        <Button x:Name="ThemeLightButton" Click="OnThemeChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Light">
+                            <TextBlock Text="라이트" />
+                        </Button>
+                        <Button x:Name="ThemeDarkButton" Click="OnThemeChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Dark">
+                            <TextBlock Text="다크" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="CompressionSection" MaxWidth="760" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="기본 압축" />
+
+                    <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource SettingsGroupBorderStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="형식" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="FormatZipButton" Click="OnFormatChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Zip">
+                                        <TextBlock Text="ZIP" />
+                                    </Button>
+                                    <Button x:Name="FormatSevenZipButton" Click="OnFormatChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="SevenZip">
+                                        <TextBlock Text="7Z" />
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Style="{StaticResource SettingsGroupBorderStyle}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="압축 수준" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="LevelFastButton" Click="OnLevelChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Fast">
+                                        <TextBlock Text="빠름" />
+                                    </Button>
+                                    <Button x:Name="LevelNormalButton" Click="OnLevelChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Normal">
+                                        <TextBlock Text="보통" />
+                                    </Button>
+                                    <Button x:Name="LevelMaximumButton" Click="OnLevelChoiceClick" Style="{StaticResource ZipZipChoiceButtonStyle}" Tag="Maximum">
+                                        <TextBlock Text="최대" />
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="FileAssociationsSection" MaxWidth="980" HorizontalAlignment="Stretch" VerticalAlignment="Top" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="파일 연결" />
+
+                    <ScrollViewer
+                        x:Name="AssociationScrollViewer"
+                        Grid.Row="1"
+                        Margin="0,16,0,0"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto"
+                        VerticalScrollMode="Enabled">
+                        <StackPanel Spacing="12">
+                            <Border Style="{StaticResource SettingsGroupBorderStyle}">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="압축 파일" />
+                                    <Grid x:Name="ArchiveExtensionsGrid" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SettingsGroupBorderStyle}">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="UNIX 계열 압축 파일" />
+                                    <Grid x:Name="UnixArchiveExtensionsGrid" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SettingsGroupBorderStyle}">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="디스크 이미지" />
+                                    <Grid x:Name="DiskImageExtensionsGrid" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="2" Margin="0,14,0,0" Style="{StaticResource SettingsFooterBorderStyle}">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Click="OnSelectRecommendedAssociationsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
+                                    <TextBlock Text="필수 파일 선택" />
+                                </Button>
+                                <Button Click="OnSelectAllAssociationsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
+                                    <TextBlock Text="전부 선택" />
+                                </Button>
+                                <Button Click="OnClearAssociationsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
+                                    <TextBlock Text="선택 안 함" />
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button Click="OnOpenDefaultAppsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
+                                    <TextBlock Text="Windows 기본 앱 설정" />
+                                </Button>
+                                <Button Click="OnApplyAssociationsClick" Style="{StaticResource ZipZipPrimaryButtonStyle}">
+                                    <TextBlock Text="지금 적용" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid x:Name="ExplorerMenusSection" MaxWidth="980" HorizontalAlignment="Stretch" VerticalAlignment="Top" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="탐색기 메뉴" />
+
+                    <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource SettingsGroupBorderStyle}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="압축 파일 선택할 때" />
+                                <CheckBox x:Name="ShowOpenWithZipZipCheckBox" Content="ZipZip으로 열기" />
+                                <CheckBox x:Name="ShowExtractHereCheckBox" Content="여기에 풀기" />
+                                <CheckBox x:Name="ShowExtractNewFolderCheckBox" Content="파일명 폴더에 풀기" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Style="{StaticResource SettingsGroupBorderStyle}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="일반 파일 또는 폴더 선택할 때" />
+                                <CheckBox x:Name="ShowCompressDialogCheckBox" Content="ZipZip으로 압축하기..." />
+                                <CheckBox x:Name="ShowCompressZipCheckBox" Content="&quot;파일명.zip&quot;으로 압축하기" />
+                                <CheckBox x:Name="ShowCompressSevenZipCheckBox" Content="&quot;파일명.7z&quot;로 압축하기" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Row="2" Margin="0,14,0,0" Style="{StaticResource SettingsFooterBorderStyle}">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button Click="OnApplyExplorerMenusClick" Style="{StaticResource ZipZipPrimaryButtonStyle}">
+                                    <TextBlock Text="지금 적용" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

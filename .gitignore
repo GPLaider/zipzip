@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+.vscode/
+artifacts/
+tmp-sample/
+tmp-shell-test/
+*.user
+*.suo
+*.cache
+*.log
+crash.log

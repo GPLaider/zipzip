@@ -1,0 +1,112 @@
+<ContentDialog
+    x:Class="ZipZip.App.Views.Dialogs.CompressDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="&#xC0C8;&#xB85C; &#xC555;&#xCD95;&#xD558;&#xAE30;"
+    CloseButtonText="&#xCDE8;&#xC18C;"
+    PrimaryButtonText="&#xC555;&#xCD95; &#xC2DC;&#xC791;"
+    DefaultButton="Primary"
+    MinWidth="760">
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        MaxHeight="560"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Auto">
+        <StackPanel Padding="0,0,8,0" Spacing="8">
+            <TextBlock
+                x:Name="SelectedItemsText"
+                Style="{StaticResource ZipZipCaptionStyle}"
+                FontSize="11.5"
+                Text="&#xC120;&#xD0DD; &#xD56D;&#xBAA9; 0&#xAC1C;" />
+
+            <StackPanel Spacing="4">
+                <TextBlock FontWeight="SemiBold" Text="&#xC800;&#xC7A5; &#xC704;&#xCE58;" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox
+                        x:Name="OutputDirectoryTextBox"
+                        PlaceholderText="&#xC555;&#xCD95; &#xD30C;&#xC77C;&#xC744; &#xC800;&#xC7A5;&#xD560; &#xD3F4;&#xB354;&#xB97C; &#xC120;&#xD0DD;&#xD574; &#xC8FC;&#xC138;&#xC694;."
+                        Style="{StaticResource ZipZipTextBoxStyle}" />
+
+                    <Button
+                        Grid.Column="1"
+                        Click="OnBrowseOutputDirectoryClick"
+                        Content="&#xCC3E;&#xC544;&#xBCF4;&#xAE30;"
+                        Style="{StaticResource ZipZipSecondaryButtonStyle}" />
+                </Grid>
+            </StackPanel>
+
+            <TextBox
+                x:Name="ArchiveNameTextBox"
+                Header="&#xD30C;&#xC77C; &#xC774;&#xB984;"
+                PlaceholderText="sample.zip"
+                Style="{StaticResource ZipZipTextBoxStyle}" />
+
+            <StackPanel Spacing="6">
+                <TextBlock FontWeight="SemiBold" Text="&#xD30C;&#xC77C; &#xD615;&#xC2DD;" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="FormatZipButton"
+                        Click="OnFormatChoiceClick"
+                        Content="ZIP"
+                        Style="{StaticResource ZipZipChoiceButtonStyle}"
+                        Tag="Zip" />
+                    <Button
+                        x:Name="FormatSevenZipButton"
+                        Click="OnFormatChoiceClick"
+                        Content="7Z"
+                        Style="{StaticResource ZipZipChoiceButtonStyle}"
+                        Tag="SevenZip" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock FontWeight="SemiBold" Text="&#xC555;&#xCD95; &#xC218;&#xC900;" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="LevelFastButton"
+                        Click="OnLevelChoiceClick"
+                        Content="&#xBE60;&#xB984;"
+                        Style="{StaticResource ZipZipChoiceButtonStyle}"
+                        Tag="Fast" />
+                    <Button
+                        x:Name="LevelNormalButton"
+                        Click="OnLevelChoiceClick"
+                        Content="&#xBCF4;&#xD1B5;"
+                        Style="{StaticResource ZipZipChoiceButtonStyle}"
+                        Tag="Normal" />
+                    <Button
+                        x:Name="LevelMaximumButton"
+                        Click="OnLevelChoiceClick"
+                        Content="&#xCD5C;&#xB300;"
+                        Style="{StaticResource ZipZipChoiceButtonStyle}"
+                        Tag="Maximum" />
+                </StackPanel>
+            </StackPanel>
+
+            <PasswordBox
+                x:Name="PasswordBox"
+                Header="&#xC554;&#xD638;"
+                Style="{StaticResource ZipZipPasswordBoxStyle}" />
+
+            <TextBox
+                x:Name="SplitSizeTextBox"
+                Header="&#xBD84;&#xD560; &#xC555;&#xCD95;"
+                PlaceholderText="&#xC608; 100M"
+                Style="{StaticResource ZipZipTextBoxStyle}" />
+
+            <Expander Header="&#xACE0;&#xAE09; &#xC124;&#xC815;">
+                <StackPanel Padding="0,6,0,0" Spacing="6">
+                    <CheckBox
+                        x:Name="EncryptFileNamesCheckBox"
+                        Content="&#xD30C;&#xC77C; &#xC774;&#xB984; &#xC554;&#xD638;&#xD654;" />
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
