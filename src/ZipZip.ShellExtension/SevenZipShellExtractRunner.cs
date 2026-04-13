@@ -30,12 +30,8 @@ internal sealed partial class SevenZipShellExtractRunner
             options.OverwriteExisting ? "-y" : "-aos",
             "-bb1",
             "-bsp1",
+            CreatePasswordArgument(options.Password),
         };
-
-        if (!string.IsNullOrWhiteSpace(options.Password))
-        {
-            arguments.Add($"-p{options.Password}");
-        }
 
         if (options.SelectedEntries is { Count: > 0 })
         {
@@ -83,13 +79,13 @@ internal sealed partial class SevenZipShellExtractRunner
         {
             var details = standardError.ToString().Trim();
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(details)
-                ? "\uC555\uCD95 \uD480\uAE30 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4."
+                ? "압축 풀기 중 오류가 발생했습니다."
                 : details);
         }
 
         progress?.Report(new ShellExtractProgressUpdate(
             Percent: 100,
-            StatusText: "\uC555\uCD95 \uD480\uAE30\uC5D0 \uC131\uACF5\uD558\uC600\uC2B5\uB2C8\uB2E4."));
+            StatusText: "압축 풀기에 성공하였습니다."));
 
         return destinationPath;
     }
@@ -175,11 +171,11 @@ internal sealed partial class SevenZipShellExtractRunner
         }
         else if (trimmed.StartsWith("Extracting archive:", StringComparison.OrdinalIgnoreCase))
         {
-            statusText = "\uC555\uCD95 \uD480\uAE30\uB97C \uC2DC\uC791\uD569\uB2C8\uB2E4.";
+            statusText = "압축 풀기를 시작합니다.";
         }
         else if (trimmed.StartsWith("Everything is Ok", StringComparison.OrdinalIgnoreCase))
         {
-            statusText = "\uB9C8\uBB34\uB9AC\uD558\uB294 \uC911...";
+            statusText = "마무리하는 중...";
         }
 
         if (percent is null && currentFile is null && statusText is null)
@@ -202,6 +198,11 @@ internal sealed partial class SevenZipShellExtractRunner
         catch
         {
         }
+    }
+
+    private static string CreatePasswordArgument(string? password)
+    {
+        return string.IsNullOrEmpty(password) ? "-p" : $"-p{password}";
     }
 
     [GeneratedRegex(@"^(?<percent>\d{1,3})%")]

@@ -197,7 +197,12 @@ public sealed class ArchiveViewModel : ObservableObject
 
     public ObservableCollection<BreadcrumbSegmentViewModel> BreadcrumbSegments { get; } = [];
 
-    public async Task LoadAsync(OpenArchiveUseCase useCase, string archivePath, CancellationToken cancellationToken = default)
+    public async Task LoadAsync(
+        OpenArchiveUseCase useCase,
+        string archivePath,
+        string? password = null,
+        bool rethrowOnError = false,
+        CancellationToken cancellationToken = default)
     {
         IsLoading = true;
         ErrorMessage = null;
@@ -205,7 +210,7 @@ public sealed class ArchiveViewModel : ObservableObject
 
         try
         {
-            var summary = await useCase.ExecuteAsync(archivePath, cancellationToken);
+            var summary = await useCase.ExecuteAsync(archivePath, password, cancellationToken);
 
             ArchivePath = archivePath;
             ArchiveName = Path.GetFileName(archivePath);
@@ -227,6 +232,11 @@ public sealed class ArchiveViewModel : ObservableObject
             SelectedOriginalSize = 0;
             OnPropertyChanged(nameof(EntrySummary));
             OnPropertyChanged(nameof(FooterSummary));
+
+            if (rethrowOnError)
+            {
+                throw;
+            }
         }
         finally
         {

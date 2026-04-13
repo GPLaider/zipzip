@@ -17,9 +17,14 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
         _runner = new SevenZipProcessRunner(options);
     }
 
-    public async Task<ArchiveSummary> OpenAsync(string archivePath, CancellationToken cancellationToken = default)
+    public async Task<ArchiveSummary> OpenAsync(
+        string archivePath,
+        string? password = null,
+        CancellationToken cancellationToken = default)
     {
-        var result = await _runner.RunAsync(["l", "-slt", archivePath], cancellationToken);
+        var result = await _runner.RunAsync(
+            ["l", "-slt", CreatePasswordArgument(password), archivePath],
+            cancellationToken);
         EnsureSuccess(result, "압축 파일을 열지 못했습니다.");
 
         var entries = SevenZipOutputParser.ParseListOutput(result.StandardOutput);
@@ -43,16 +48,12 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
             archivePath,
             $"-o{destinationPath}",
             options.OverwriteExisting ? "-y" : "-aos",
+            CreatePasswordArgument(options.Password),
         };
 
         if (options.SelectedEntries is { Count: > 0 })
         {
             arguments.AddRange(options.SelectedEntries);
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.Password))
-        {
-            arguments.Add($"-p{options.Password}");
         }
 
         var result = await _runner.RunAsync(arguments, cancellationToken);
@@ -98,7 +99,7 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
 
     public async Task TestAsync(string archivePath, CancellationToken cancellationToken = default)
     {
-        var result = await _runner.RunAsync(["t", archivePath], cancellationToken);
+        var result = await _runner.RunAsync(["t", CreatePasswordArgument(null), archivePath], cancellationToken);
         EnsureSuccess(result, "압축 파일 테스트에 실패했습니다.");
     }
 
@@ -185,6 +186,11 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
             CompressionLevel.Maximum => "-mx=9",
             _ => "-mx=5",
         };
+    }
+
+    private static string CreatePasswordArgument(string? password)
+    {
+        return string.IsNullOrEmpty(password) ? "-p" : $"-p{password}";
     }
 
     public static string ResolveExtractionDestinationPath(string archivePath, ExtractionOptions options)
