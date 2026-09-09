@@ -11,6 +11,9 @@ public sealed class HomeViewModel : ObservableObject
 
     public ObservableCollection<RecentArchiveItem> RecentArchives { get; } = [];
 
+    public Microsoft.UI.Xaml.Visibility EmptyRecentVisibility => RecentArchives.Count == 0
+        ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
     public string RecentArchiveCountLabel
     {
         get => _recentArchiveCountLabel;
@@ -34,6 +37,7 @@ public sealed class HomeViewModel : ObservableObject
         }
 
         RecentArchiveCountLabel = $"\uCD5C\uADFC {RecentArchives.Count}\uAC1C";
+        OnPropertyChanged(nameof(EmptyRecentVisibility));
     }
 
     private static string GetRelativeLabel(DateTimeOffset lastOpenedAt)

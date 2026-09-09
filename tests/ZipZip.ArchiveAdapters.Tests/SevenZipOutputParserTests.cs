@@ -36,8 +36,19 @@ Attributes = A_ -rw-r--r--
         Assert.Equal("docs", entries[0].Name);
         Assert.True(entries[0].IsDirectory);
         Assert.Equal("readme.txt", entries[1].Name);
-        Assert.Equal("?띿뒪??臾몄꽌", entries[1].TypeLabel);
+        Assert.Equal("텍스트 문서", entries[1].TypeLabel);
         Assert.Equal(4096, entries[2].PackedSize);
+    }
+
+    [Fact]
+    public void ParseListOutput_PreservesNamesAndAddsMissingParents()
+    {
+        var entries = SevenZipOutputParser.ParseListOutput("Path = 자료/하위/ 공백.txt \nSize = 12\n\nPath = 빈 폴더\nFolder = +\n");
+        Assert.Contains(entries, e => e.Path == "자료/하위/ 공백.txt " && !e.IsDirectory);
+        Assert.Contains(entries, e => e.Path == "자료" && e.IsDirectory);
+        Assert.Contains(entries, e => e.Path == "자료/하위" && e.IsDirectory);
+        Assert.Contains(entries, e => e.Path == "빈 폴더" && e.IsDirectory && e.TypeLabel == "폴더");
+        Assert.Equal(4, entries.Count);
     }
 
     [Theory]

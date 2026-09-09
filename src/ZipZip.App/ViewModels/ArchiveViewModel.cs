@@ -8,14 +8,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System.Diagnostics;
-using Windows.UI;
 
 namespace ZipZip.App.ViewModels;
 
 public sealed class ArchiveViewModel : ObservableObject
 {
     private readonly List<ArchiveEntryItemViewModel> _allEntries = [];
-    private string _archiveName = "sample.zip";
+    private string _archiveName = string.Empty;
     private string _archivePath = string.Empty;
     private string _currentFolderPath = string.Empty;
     private string _formatLabel = "ZIP";
@@ -48,6 +47,7 @@ public sealed class ArchiveViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(CurrentLocationText));
                 OnPropertyChanged(nameof(ArchivePathDisplay));
+                OnPropertyChanged(nameof(CanExtract));
             }
         }
     }
@@ -96,6 +96,8 @@ public sealed class ArchiveViewModel : ObservableObject
             if (SetProperty(ref _isLoading, value))
             {
                 OnPropertyChanged(nameof(LoadingVisibility));
+                OnPropertyChanged(nameof(CanExtract));
+                OnPropertyChanged(nameof(CanExtractSelected));
             }
         }
     }
@@ -109,6 +111,8 @@ public sealed class ArchiveViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(HasError));
                 OnPropertyChanged(nameof(ErrorVisibility));
+                OnPropertyChanged(nameof(CanExtract));
+                OnPropertyChanged(nameof(CanExtractSelected));
             }
         }
     }
@@ -132,6 +136,9 @@ public sealed class ArchiveViewModel : ObservableObject
     }
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    public bool CanExtract => !IsLoading && !HasError && !string.IsNullOrWhiteSpace(ArchivePath);
+    public bool CanExtractSelected => CanExtract && SelectedCount > 0;
 
     public bool HasOperationMessage => !string.IsNullOrWhiteSpace(OperationMessage);
 
@@ -176,6 +183,7 @@ public sealed class ArchiveViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(SelectionSummary));
                 OnPropertyChanged(nameof(FooterSummary));
+                OnPropertyChanged(nameof(CanExtractSelected));
             }
         }
     }
@@ -197,20 +205,19 @@ public sealed class ArchiveViewModel : ObservableObject
 
     public ObservableCollection<BreadcrumbSegmentViewModel> BreadcrumbSegments { get; } = [];
 
-    public async Task LoadAsync(OpenArchiveUseCase useCase, string archivePath, CancellationToken cancellationToken = default)
+    public async Task LoadAsync(OpenArchiveUseCase useCase, string archivePath, CancellationToken cancellationToken = default, string? password = null)
     {
         IsLoading = true;
         ErrorMessage = null;
         ClearOperation();
+        ArchivePath = archivePath;
+        ArchiveName = Path.GetFileName(archivePath);
+        FormatLabel = ArchiveFormatAssetCatalog.GetDisplayLabel(archivePath);
+        FormatIconSource = ArchiveFormatAssetCatalog.GetImageSource(archivePath);
 
         try
         {
-            var summary = await useCase.ExecuteAsync(archivePath, cancellationToken);
-
-            ArchivePath = archivePath;
-            ArchiveName = Path.GetFileName(archivePath);
-            FormatLabel = ArchiveFormatAssetCatalog.GetDisplayLabel(archivePath);
-            FormatIconSource = ArchiveFormatAssetCatalog.GetImageSource(archivePath);
+            var summary = await useCase.ExecuteAsync(archivePath, cancellationToken, password);
 
             _allEntries.Clear();
             _allEntries.AddRange(summary.Entries.Select(entry => new ArchiveEntryItemViewModel(entry)));
@@ -249,10 +256,10 @@ public sealed class ArchiveViewModel : ObservableObject
         CompletedFolderPath = completedFolderPath;
     }
 
-    public void SetOperationInfo(string message)
+    public void SetOperationInfo(string message, InfoBarSeverity severity = InfoBarSeverity.Informational)
     {
         ErrorMessage = null;
-        OperationSeverity = InfoBarSeverity.Informational;
+        OperationSeverity = severity;
         OperationMessage = message;
         CompletedFolderPath = null;
     }
@@ -401,12 +408,6 @@ public sealed class ArchiveEntryItemViewModel
         ArchiveIconVisibility = hasArchiveIcon ? Visibility.Visible : Visibility.Collapsed;
         GlyphIconVisibility = hasArchiveIcon ? Visibility.Collapsed : Visibility.Visible;
 
-        IconBackground = entry.IsDirectory
-            ? new SolidColorBrush(Color.FromArgb(255, 220, 238, 255))
-            : new SolidColorBrush(Color.FromArgb(255, 240, 244, 248));
-        IconForeground = entry.IsDirectory
-            ? new SolidColorBrush(Color.FromArgb(255, 15, 108, 189))
-            : new SolidColorBrush(Color.FromArgb(255, 59, 66, 74));
     }
 
     public string InternalPath { get; }
@@ -424,10 +425,6 @@ public sealed class ArchiveEntryItemViewModel
     public string OriginalSizeText { get; }
 
     public string IconGlyph { get; }
-
-    public Brush IconBackground { get; }
-
-    public Brush IconForeground { get; }
 
     public ImageSource? ArchiveIconSource { get; }
 

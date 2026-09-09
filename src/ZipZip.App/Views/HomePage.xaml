@@ -3,262 +3,140 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ZipZip.App.ViewModels"
-    Background="{ThemeResource ZipZipWindowBackgroundBrush}">
+    Background="{ThemeResource ZipZipWindowBackgroundBrush}" KeyboardAcceleratorPlacementMode="Hidden">
     <Page.Resources>
         <Style x:Key="HomeCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource ZipZipSecondaryButtonStyle}">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="MinHeight" Value="68" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="MinHeight" Value="108" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
-
-        <Style x:Key="HomePrimaryCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource ZipZipPrimaryButtonStyle}">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="MinHeight" Value="68" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Style x:Key="HomePrimaryCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource HomeCommandButtonStyle}">
+            <Setter Property="Background" Value="{ThemeResource ZipZipBrandStrongBrush}" />
+            <Setter Property="Foreground" Value="{ThemeResource ZipZipOnBrandBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource ZipZipBrandStrongBrush}" />
         </Style>
     </Page.Resources>
-
     <Page.KeyboardAccelerators>
-        <KeyboardAccelerator
-            Key="V"
-            Modifiers="Control"
-            Invoked="OnPasteKeyboardAcceleratorInvoked" />
+        <KeyboardAccelerator Key="V" Modifiers="Control" Invoked="OnPasteKeyboardAcceleratorInvoked" />
     </Page.KeyboardAccelerators>
-
     <Page.DataContext>
         <viewModels:HomeViewModel />
     </Page.DataContext>
 
-    <Grid
-        Padding="8"
-        AllowDrop="True"
-        ColumnSpacing="10"
-        DragOver="OnRootDragOver"
-        Drop="OnRootDrop">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="320" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <Grid Padding="24" RowSpacing="20" AllowDrop="True" DragOver="OnRootDragOver" Drop="OnRootDrop">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border
-            Grid.Column="0"
-            Padding="0"
-            Style="{StaticResource ZipZipPanelBorderStyle}">
+        <Grid ColumnSpacing="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Width="52" Height="52" Source="ms-appx:///Assets/App/ZipZip.png" AutomationProperties.Name="ZipZip" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="ZipZip" FontSize="28" FontWeight="SemiBold" />
+                <TextBlock Text="파일은 가볍게, 작업은 간편하게." Style="{StaticResource ZipZipCaptionStyle}" />
+            </StackPanel>
+            <Button Grid.Column="2" Click="OnSettingsClick" Content="설정" VerticalAlignment="Center" Style="{StaticResource ZipZipSecondaryButtonStyle}" />
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Click="OnOpenArchiveClick" AutomationProperties.Name="압축 파일 열기" ToolTipService.ToolTip="압축 파일 열기 · Ctrl+O" Style="{StaticResource HomePrimaryCommandButtonStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8E5;" FontSize="28" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                        <TextBlock Text="압축 파일 열기" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="내용 확인부터 압축 풀기까지" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+            <Button Grid.Column="1" Click="OnCreateArchiveClick" AutomationProperties.Name="새로 압축하기" ToolTipService.ToolTip="새로 압축하기 · Ctrl+N" Style="{StaticResource HomeCommandButtonStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE898;" FontSize="28" VerticalAlignment="Center" Foreground="{ThemeResource ZipZipBrandBrush}" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                        <TextBlock Text="새로 압축하기" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="파일을 모아 ZIP 또는 7Z로" FontSize="12" Style="{StaticResource ZipZipCaptionStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock Text="최근 압축 파일" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding RecentArchiveCountLabel}" VerticalAlignment="Center" Style="{StaticResource ZipZipCaptionStyle}" />
+            </StackPanel>
+            <Button Grid.Column="1" Click="OnCreateFolderClick" Content="폴더 압축…" Style="{StaticResource ZipZipSecondaryButtonStyle}" />
+        </Grid>
+
+        <Border Grid.Row="3" Style="{StaticResource ZipZipPanelBorderStyle}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Border
-                    Padding="10,6"
-                    Background="{ThemeResource ZipZipPanelHeaderBrush}"
-                    BorderBrush="{ThemeResource ZipZipStrokeBrush}"
-                    BorderThickness="0,0,0,1">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Style="{StaticResource ZipZipSectionTitleStyle}"
-                            Text="빠른 작업" />
-
-                        <Button
-                            Grid.Column="1"
-                            Click="OnSettingsClick"
-                            Content="설정"
-                            Style="{StaticResource ZipZipToolbarButtonStyle}" />
-                    </Grid>
-                </Border>
-
-                <StackPanel Grid.Row="1" Padding="10" Spacing="8">
-                    <Button
-                        Click="OnOpenArchiveClick"
-                        Style="{StaticResource HomePrimaryCommandButtonStyle}">
-                        <Grid Padding="14,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <FontIcon
-                                VerticalAlignment="Center"
-                                FontSize="20"
-                                Glyph="&#xE8E5;" />
-
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                Text="압축 파일 열기" />
-
-                            <FontIcon
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                Glyph="&#xE72A;" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        Click="OnCreateArchiveClick"
-                        Style="{StaticResource HomeCommandButtonStyle}">
-                        <Grid Padding="14,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <FontIcon
-                                VerticalAlignment="Center"
-                                FontSize="20"
-                                Glyph="&#xE898;" />
-
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                Text="새로 압축하기" />
-
-                            <FontIcon
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                Glyph="&#xE72A;" />
-                        </Grid>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <Border
-            Grid.Column="1"
-            Padding="0"
-            Style="{StaticResource ZipZipPanelBorderStyle}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Border
-                    Padding="10,6"
-                    Background="{ThemeResource ZipZipPanelHeaderBrush}"
-                    BorderBrush="{ThemeResource ZipZipStrokeBrush}"
-                    BorderThickness="0,0,0,1">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Style="{StaticResource ZipZipSectionTitleStyle}"
-                            Text="최근 압축 파일" />
-
-                        <TextBlock
-                            Grid.Column="1"
-                            Style="{StaticResource ZipZipCaptionStyle}"
-                            FontSize="11.5"
-                            Text="{Binding RecentArchiveCountLabel}" />
-                    </Grid>
-                </Border>
-
-                <ListView
-                    Grid.Row="1"
-                    ItemClick="OnRecentItemClick"
-                    IsItemClickEnabled="True"
-                    ItemsSource="{Binding RecentArchives}"
-                    SelectionMode="None">
+                <ListView ItemClick="OnRecentItemClick" IsItemClickEnabled="True" ItemsSource="{Binding RecentArchives}" SelectionMode="None" AutomationProperties.Name="최근 압축 파일">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="MinHeight" Value="42" />
+                            <Setter Property="MinHeight" Value="64" />
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="viewModels:RecentArchiveItem">
-                            <Border
-                                Padding="10,6"
-                                BorderBrush="{ThemeResource ZipZipStrokeBrush}"
-                                BorderThickness="0,0,0,1"
-                                CornerRadius="0">
+                            <Border Padding="16,12" ToolTipService.ToolTip="{x:Bind FullPath}">
                                 <Border.ContextFlyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem
-                                            Click="OnRemoveRecentItemClick"
-                                            Tag="{x:Bind FullPath}"
-                                            Text="기록에서 제거" />
+                                        <MenuFlyoutItem Click="OnRemoveRecentItemClick" Tag="{x:Bind FullPath}" Text="기록에서 제거" />
                                     </MenuFlyout>
                                 </Border.ContextFlyout>
-
-                                <Grid ColumnSpacing="10">
+                                <Grid ColumnSpacing="14">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-
-                                    <Image
-                                        Width="18"
-                                        Height="18"
-                                        VerticalAlignment="Center"
-                                        Source="{x:Bind IconSource}"
-                                        Stretch="Uniform" />
-
-                                    <StackPanel Grid.Column="1" Spacing="1">
-                                        <TextBlock
-                                            FontSize="12"
-                                            FontWeight="SemiBold"
-                                            Text="{x:Bind FileName}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <TextBlock
-                                            Style="{StaticResource ZipZipCaptionStyle}"
-                                            FontSize="11"
-                                            Text="{x:Bind FullPath}"
-                                            TextTrimming="CharacterEllipsis" />
+                                    <Image Width="32" Height="32" Source="{x:Bind IconSource}" />
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="{x:Bind FileName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind FullPath}" FontSize="12" Foreground="{ThemeResource ZipZipMutedForegroundBrush}" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
-
-                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="1">
-                                        <TextBlock
-                                            HorizontalAlignment="Right"
-                                            FontSize="11"
-                                            FontWeight="SemiBold"
-                                            Text="{x:Bind FormatLabel}" />
-                                        <TextBlock
-                                            HorizontalAlignment="Right"
-                                            Style="{StaticResource ZipZipCaptionStyle}"
-                                            FontSize="11"
-                                            Text="{x:Bind LastOpenedLabel}" />
+                                    <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Right">
+                                        <TextBlock Text="{x:Bind FormatLabel}" FontSize="12" HorizontalAlignment="Right" />
+                                        <TextBlock Text="{x:Bind LastOpenedLabel}" FontSize="12" Style="{StaticResource ZipZipCaptionStyle}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+                <StackPanel Margin="24" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding EmptyRecentVisibility}" IsHitTestVisible="False">
+                    <FontIcon Glyph="&#xE8B7;" FontSize="36" Foreground="{ThemeResource ZipZipBrandBrush}" />
+                    <TextBlock Text="여기에 파일을 놓아보세요" FontSize="20" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" />
+                    <TextBlock Text="압축 파일은 열고, 일반 파일과 폴더는 새로 압축합니다.&#xA;열었던 압축 파일은 이곳에 표시됩니다." Style="{StaticResource ZipZipCaptionStyle}" TextAlignment="Center" />
+                </StackPanel>
             </Grid>
         </Border>
-
-        <InfoBar
-            x:Name="HomeStatusInfoBar"
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="0,6,0,0"
-            IsClosable="True"
-            IsOpen="False"
-            Severity="Informational" />
+        <InfoBar x:Name="HomeStatusInfoBar" Grid.Row="4" IsClosable="True" IsOpen="False" Severity="Informational" />
     </Grid>
 </Page>

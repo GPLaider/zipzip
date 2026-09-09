@@ -41,7 +41,7 @@
 
     <Grid ColumnSpacing="14" Padding="12">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="188" />
+            <ColumnDefinition Width="152" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -97,13 +97,14 @@
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <InfoBar x:Name="SettingsInfoBar" Grid.Row="0" Margin="0,0,0,10" IsOpen="False" />
+            <InfoBar x:Name="SettingsInfoBar" Grid.Row="1" Margin="0,12,0,0" IsOpen="False" />
 
-            <Grid Grid.Row="1">
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <Grid>
                 <Grid x:Name="ThemeSection" MaxWidth="760" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -133,13 +134,9 @@
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="기본 압축" />
 
-                    <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <VariableSizedWrapGrid Grid.Row="1" Margin="0,16,0,0" Orientation="Horizontal" ItemWidth="280" ItemHeight="130">
 
-                        <Border Grid.Column="0" Style="{StaticResource SettingsGroupBorderStyle}">
+                        <Border Margin="0,0,8,8" Style="{StaticResource SettingsGroupBorderStyle}">
                             <StackPanel Spacing="8">
                                 <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="형식" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -153,7 +150,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="1" Style="{StaticResource SettingsGroupBorderStyle}">
+                        <Border Margin="0,0,8,8" Style="{StaticResource SettingsGroupBorderStyle}">
                             <StackPanel Spacing="8">
                                 <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="압축 수준" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -169,7 +166,7 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </VariableSizedWrapGrid>
                 </Grid>
 
                 <Grid x:Name="FileAssociationsSection" MaxWidth="980" HorizontalAlignment="Stretch" VerticalAlignment="Top" Visibility="Collapsed">
@@ -213,13 +210,7 @@
                     </ScrollViewer>
 
                     <Border Grid.Row="2" Margin="0,14,0,0" Style="{StaticResource SettingsFooterBorderStyle}">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                        <VariableSizedWrapGrid Orientation="Horizontal" ItemWidth="170" ItemHeight="42">
                                 <Button Click="OnSelectRecommendedAssociationsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
                                     <TextBlock Text="필수 파일 선택" />
                                 </Button>
@@ -229,17 +220,13 @@
                                 <Button Click="OnClearAssociationsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
                                     <TextBlock Text="선택 안 함" />
                                 </Button>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                                 <Button Click="OnOpenDefaultAppsClick" Style="{StaticResource ZipZipSecondaryButtonStyle}">
                                     <TextBlock Text="Windows 기본 앱 설정" />
                                 </Button>
                                 <Button Click="OnApplyAssociationsClick" Style="{StaticResource ZipZipPrimaryButtonStyle}">
                                     <TextBlock Text="지금 적용" />
                                 </Button>
-                            </StackPanel>
-                        </Grid>
+                        </VariableSizedWrapGrid>
                     </Border>
                 </Grid>
 
@@ -252,13 +239,9 @@
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderStyle}" Text="탐색기 메뉴" />
 
-                    <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <VariableSizedWrapGrid Grid.Row="1" Margin="0,16,0,0" Orientation="Horizontal" ItemWidth="304" ItemHeight="200">
 
-                        <Border Grid.Column="0" Style="{StaticResource SettingsGroupBorderStyle}">
+                        <Border Margin="0,0,8,8" Style="{StaticResource SettingsGroupBorderStyle}">
                             <StackPanel Spacing="10">
                                 <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="압축 파일 선택할 때" />
                                 <CheckBox x:Name="ShowOpenWithZipZipCheckBox" Content="ZipZip으로 열기" />
@@ -267,7 +250,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="1" Style="{StaticResource SettingsGroupBorderStyle}">
+                        <Border Margin="0,0,8,8" Style="{StaticResource SettingsGroupBorderStyle}">
                             <StackPanel Spacing="10">
                                 <TextBlock Style="{StaticResource ZipZipSectionTitleStyle}" Text="일반 파일 또는 폴더 선택할 때" />
                                 <CheckBox x:Name="ShowCompressDialogCheckBox" Content="ZipZip으로 압축하기..." />
@@ -275,7 +258,7 @@
                                 <CheckBox x:Name="ShowCompressSevenZipCheckBox" Content="&quot;파일명.7z&quot;로 압축하기" />
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </VariableSizedWrapGrid>
 
                     <Border Grid.Row="2" Margin="0,14,0,0" Style="{StaticResource SettingsFooterBorderStyle}">
                         <Grid>
@@ -288,6 +271,7 @@
                     </Border>
                 </Grid>
             </Grid>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Page>

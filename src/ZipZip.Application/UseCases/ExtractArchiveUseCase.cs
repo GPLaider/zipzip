@@ -15,13 +15,13 @@ public sealed class ExtractArchiveUseCase
     public Task ExecuteAsync(
         string archivePath,
         ExtractionOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, IProgress<int>? progress = null)
     {
         if (string.IsNullOrWhiteSpace(archivePath))
         {
             throw new ArgumentException("Archive path is required.", nameof(archivePath));
         }
 
-        return _archiveBackend.ExtractAsync(archivePath, options, cancellationToken);
+        return _archiveBackend.ExtractAsync(archivePath, options, cancellationToken, progress);
     }
 }

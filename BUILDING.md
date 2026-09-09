@@ -1,69 +1,38 @@
-# 吏묒쭛 鍮뚮뱶 媛?대뱶
+# ZipZip 개발 빌드
 
-## ?꾩옱 ?곹깭
+Windows x64, .NET SDK 8, 7z.exe와 7z.dll이 필요하다. 검증 환경은 SDK 8.0.425 / 7-Zip 24.09다.
+WinUI CLI 빌드에 필요한 PRI 작업은 앱의 Microsoft.Windows.SDK.BuildTools.MSIX 패키지 참조로 제공한다.
 
-- `ZipZip.Domain`, `ZipZip.Application`, `ZipZip.ArchiveAdapters`??.NET 8 湲곗??쇰줈 鍮뚮뱶? ?뚯뒪?멸? 媛?ν븯??
-- `ZipZip.App`??WinUI 3 ?ㅼ펷?덊넠, ?붾㈃ ?먮쫫, 7-Zip ?대뙌???곌껐, ?ㅼ젙 ??? 理쒓렐 ?뚯씪 ??κ퉴吏 ?ㅼ뼱媛 ?덈떎.
-- ?꾩옱 ?묒뾽 ?섍꼍?먯꽌??WinUI 3 鍮뚮뱶???꾩슂??Windows ?⑦궎吏??쒖뒪?ш? ?놁뼱 ??鍮뚮뱶媛 以묐떒?쒕떎.
-
-## ?꾩옱 ?뺤씤??鍮뚮뱶 釉붾줈而?
-?꾨옒 紐낅졊 ?ㅽ뻾 ??
+저장소 루트에서 PowerShell로 실행한다. 출력과 NuGet 캐시를 여유 공간이 있는 드라이브에 둘 수 있다.
 
 ```powershell
-dotnet build src/ZipZip.App/ZipZip.App.csproj -p:UseSharedCompilation=false
+$env:NUGET_PACKAGES = 'D:\ZipZip-build\packages'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/Build-ZipZip.ps1 -Dotnet 'D:\ZipZip-build\sdk\dotnet.exe' -ArtifactsRoot 'D:\ZipZip-build\verified' -SevenZipDirectory 'C:\Program Files\7-Zip'
 ```
 
-?ㅼ쓬 怨꾩뿴 ?ㅻ쪟媛 諛쒖깮?쒕떎.
+PATH에 SDK가 있으면 -Dotnet을 생략한다. -SevenZipDirectory는 7-Zip 실행 파일과 DLL이 있는 폴더로 바꾼다.
+스크립트는 앱·탐색기 보조 프로그램 빌드, 기존 테스트 21개, 실제 압축 엔진 검사 28개, 아이콘 검사 후 실행 폴더를 만든다.
+성공 시 `D:\ZipZip-build\verified\run\ZipZip.App.exe`를 실행한다. 설치·파일 연결 등록은 수행하지 않는다.
+테스트 입력과 출력은 ArtifactsRoot\smoke 아래 고유 폴더에 보존한다.
 
-- `Microsoft.Build.Packaging.Pri.Tasks.dll` ?꾨씫
-- WinUI 3 / Windows App SDK 鍮뚮뱶???꾩슂??Visual Studio Appx/MSIX ?⑦궎吏??쒖뒪??遺??
-利? ?꾩옱 ?⑥? ??鍮뚮뱶 ?ㅽ뙣??肄붾뱶蹂대떎 濡쒖뺄 WinUI 鍮뚮뱶 ?섍꼍 臾몄젣??
+SDK 8에서는 .slnx 대신 개별 .csproj 또는 위 스크립트를 사용한다.
+이 결과는 개발용 실행 빌드다. 서명된 배포 설치 파일은 별도 검증이 필요하며, 7-Zip을 재배포할 때는 해당 라이선스도 포함해야 한다.
 
-## 沅뚯옣 媛쒕컻 ?섍꼍
-
-- Windows 11 ?먮뒗 理쒖떊 Windows 10
-- Visual Studio 2022
-- Windows App SDK 愿??援ъ꽦?붿냼
-- Windows 10/11 SDK
-- MSIX / Appx ?⑦궎吏?鍮뚮뱶 ?꾧뎄
-
-沅뚯옣 Visual Studio ?뚰겕濡쒕뱶/援ъ꽦?붿냼:
-
-- `.NET ?곗뒪?ы넲 媛쒕컻`
-- `Windows ?좏뵆由ъ??댁뀡 SDK` 愿???꾧뎄
-- `Windows 10/11 SDK`
-
-## 沅뚯옣 泥??ㅽ뻾 ?쒖꽌
-
-1. Visual Studio 2022?먯꽌 `src/ZipZip.App/ZipZip.App.csproj`瑜??곕떎.
-2. ?꾨씫??Windows SDK / Appx 鍮뚮뱶 援ъ꽦?붿냼媛 ?덉쑝硫??ㅼ튂?쒕떎.
-3. Debug/x64 湲곗??쇰줈 泥?鍮뚮뱶瑜??섑뻾?쒕떎.
-4. ?깆씠 ?⑤㈃ ?쒖옉 ?붾㈃, ?ㅼ젙, ?꾩뭅?대툕 ?붾㈃, ?뺤텞/?湲??먮쫫???섎룞?쇰줈 ?뺤씤?쒕떎.
-
-## CLI 湲곗? 寃利?紐낅졊
-
-怨듭슜 ?덉씠???뚯뒪??
+아이콘 원본은 `tools/assets/ZipZip-master.png`다. 변경한 뒤 아래 명령으로 앱과 파일 형식별 PNG·ICO를 함께 갱신한다.
 
 ```powershell
-dotnet test tests/ZipZip.Application.Tests/ZipZip.Application.Tests.csproj -p:UseSharedCompilation=false
-dotnet test tests/ZipZip.ArchiveAdapters.Tests/ZipZip.ArchiveAdapters.Tests.csproj -m:1 -p:UseSharedCompilation=false
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/Generate-ZipZipIcons.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/Test-ZipZipIcons.ps1
 ```
 
-WinUI ??鍮뚮뱶 ?뺤씤:
+## 설치 파일 빌드
+
+.NET SDK 8과 Inno Setup 6으로 Release 앱·검사·설치 파일을 한 번에 만든다. Visual Studio 고정 경로는 필요 없다.
 
 ```powershell
-dotnet build src/ZipZip.App/ZipZip.App.csproj -p:UseSharedCompilation=false
+$env:NUGET_PACKAGES = 'D:\ZipZip-build\packages'
+$env:NUGET_HTTP_CACHE_PATH = 'D:\ZipZip-build\nuget-http'
+./tools/Build-ZipZipInstaller.ps1 -Version '0.2.0-preview' -Dotnet 'D:\ZipZip-build\sdk\dotnet.exe' -ArtifactsRoot 'D:\ZipZip-build\release' -SevenZipDirectory 'C:\Program Files\7-Zip' -Iscc 'D:\ZipZip-build\inno\ISCC.exe'
 ```
 
-## 援ы쁽??湲곕뒫 湲곗? 泥댄겕?ъ씤??
-- ?쒖옉 ?붾㈃?먯꽌 ?뺤텞 ?뚯씪 ?닿린
-- ?덈줈 ?뺤텞?섍린
-- 理쒓렐 ?뚯씪 紐⑸줉 濡쒕뱶
-- ?뚮쭏 ?꾪솚 諛????- 湲곕낯 ?뺤텞 ?뺤떇/?뺤텞 ?섏? ???- ?꾩뭅?대툕 ?닿린 ??紐⑸줉 ?쒖떆
-- ?대뜑 ?붾툝?대┃ ?대? ?먯깋
-- breadcrumb ?대룞
-- ?꾩껜 ?湲?/ ?좏깮 ?湲?
-## ?ㅼ쓬 ?곗꽑?쒖쐞
-
-1. WinUI 3 鍮뚮뱶 ?섍꼍??留욎떠 ?ㅼ젣 ?ㅽ뻾 ?붾㈃ 寃利?2. ?ㅼ젙 ??κ컪????留롮? ?붾㈃怨??숈옉??諛섏쁺
-3. ?먯깋湲?硫붾돱? ?ㅼ튂 ?먮쫫 ?곌껐
+`dist`에 설치 파일과 `SHA256SUMS.txt`를 만든다. 7-Zip License.txt·History.txt를 포함하며 서명은 `-SignThumbprint`를 지정한 경우만 수행한다. Windows App SDK는 파일 선택창 포커스 복구 수정이 포함된 1.8.11을 사용한다.

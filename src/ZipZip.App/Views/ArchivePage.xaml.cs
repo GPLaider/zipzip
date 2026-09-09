@@ -14,10 +14,12 @@ namespace ZipZip.App.Views;
 public sealed partial class ArchivePage : Page
 {
     private ArchiveViewModel ViewModel => (ArchiveViewModel)DataContext;
+    private string? _archivePassword;
 
     public ArchivePage()
     {
         InitializeComponent();
+        EntriesListView.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnEntriesKeyDown), handledEventsToo: true);
         DataContext = new ArchiveViewModel();
     }
 
@@ -28,6 +30,13 @@ public sealed partial class ArchivePage : Page
         if (e.Parameter is string archivePath && !string.IsNullOrWhiteSpace(archivePath))
         {
             await ViewModel.LoadAsync(App.Services.OpenArchive, archivePath);
+
+            while (ViewModel.HasError && SevenZipErrorClassifier.RequiresPassword(ViewModel.ErrorMessage ?? string.Empty))
+            {
+                _archivePassword = await RequestPasswordAsync("파일 목록이 암호화되어 있습니다. 암호를 입력해 주세요.");
+                if (_archivePassword is null) return;
+                await ViewModel.LoadAsync(App.Services.OpenArchive, archivePath, password: _archivePassword);
+            }
 
             if (!ViewModel.HasError)
             {
@@ -79,6 +88,35 @@ public sealed partial class ArchivePage : Page
         await ExtractItemsAsync([]);
     }
 
+    private async void OnTestArchiveClick(object sender, RoutedEventArgs e)
+    {
+        while (true)
+        {
+            try
+            {
+                await App.MainWindowInstance!.RunArchiveOperationAsync("무결성 검사 중",
+                    (token, progress) => App.Services.TestArchive.ExecuteAsync(ViewModel.ArchivePath, token, _archivePassword, progress));
+                ViewModel.SetOperationSuccess("무결성 검사를 통과했습니다. 파일을 추출하지 않았습니다.");
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                ViewModel.SetOperationInfo("무결성 검사를 중지했습니다.");
+                return;
+            }
+            catch (Exception ex) when (NeedsPassword(ex))
+            {
+                _archivePassword = await RequestPasswordAsync("검사에 사용할 암호를 입력해 주세요. 이전 암호가 틀렸다면 다시 입력해 주세요.");
+                if (_archivePassword is null) return;
+            }
+            catch (Exception ex)
+            {
+                ViewModel.SetOperationInfo("무결성 검사 실패: " + ex.Message, InfoBarSeverity.Error);
+                return;
+            }
+        }
+    }
+
     private async void OnExtractSelectedClick(object sender, RoutedEventArgs e)
     {
         var selectedItems = GetSelectedItems();
@@ -119,6 +157,25 @@ public sealed partial class ArchivePage : Page
     }
 
     private async void OnEntriesDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        await OpenSelectedAsync();
+    }
+
+    private async void OnEntriesKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            e.Handled = true;
+            await OpenSelectedAsync();
+        }
+        else if (e.Key == Windows.System.VirtualKey.Back)
+        {
+            e.Handled = true;
+            ViewModel.NavigateUp();
+        }
+    }
+
+    private async Task OpenSelectedAsync()
     {
         var selectedItems = GetSelectedItems();
         if (selectedItems.Count != 1)
@@ -207,21 +264,28 @@ public sealed partial class ArchivePage : Page
 
     private async Task ExecuteExtractionWithPasswordRetryAsync(ExtractionOptions options, int selectedCount)
     {
-        var currentOptions = options with { Password = null };
+        var currentOptions = options with { Password = _archivePassword };
         var completedFolderPath = SevenZipArchiveBackend.ResolveExtractionDestinationPath(ViewModel.ArchivePath, currentOptions);
+        // Resolve once so password retries use the same folder and the result link stays correct.
+        currentOptions = currentOptions with { DestinationPath = completedFolderPath, CreateNewFolder = false };
         var promptMessage = "\uC554\uD638\uAC00 \uD544\uC694\uD55C \uC555\uCD95 \uD30C\uC77C\uC785\uB2C8\uB2E4. \uC554\uD638\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.";
 
         while (true)
         {
             try
             {
-                await App.Services.ExtractArchive.ExecuteAsync(ViewModel.ArchivePath, currentOptions);
-                await ViewModel.LoadAsync(App.Services.OpenArchive, ViewModel.ArchivePath);
+                await App.MainWindowInstance!.RunArchiveOperationAsync("압축 푸는 중",
+                    (token, progress) => App.Services.ExtractArchive.ExecuteAsync(ViewModel.ArchivePath, currentOptions, token, progress));
                 App.MainWindowInstance?.SetWindowTitle($"{ViewModel.ArchiveName} - ZipZip");
                 ViewModel.SetOperationSuccess(selectedCount == 0
                     ? "\uC555\uCD95 \uD480\uAE30\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4."
                     : $"\uC120\uD0DD\uD55C {selectedCount}\uAC1C \uD56D\uBAA9\uC744 \uD480\uC5C8\uC2B5\uB2C8\uB2E4.",
                     completedFolderPath);
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                ViewModel.SetOperationInfo("압축 풀기를 중지했습니다. 이미 풀린 파일은 대상 폴더에 남아 있습니다.");
                 return;
             }
             catch (Exception ex) when (NeedsPassword(ex))
@@ -234,6 +298,7 @@ public sealed partial class ArchivePage : Page
                 }
 
                 currentOptions = currentOptions with { Password = password };
+                _archivePassword = password;
                 promptMessage = "\uC554\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC785\uB825\uD574 \uC8FC\uC138\uC694.";
             }
             catch (Exception ex)

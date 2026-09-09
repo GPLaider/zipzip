@@ -21,15 +21,17 @@ internal sealed partial class SevenZipShellExtractRunner
         IProgress<ShellExtractProgressUpdate>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        await new SevenZipArchiveBackend(_options).ValidateEncryptedArchiveAsync(archivePath, options.Password, cancellationToken);
         var destinationPath = SevenZipArchiveBackend.ResolveExtractionDestinationPath(archivePath, options);
         var arguments = new List<string>
         {
             "x",
-            archivePath,
             $"-o{destinationPath}",
             options.OverwriteExisting ? "-y" : "-aos",
             "-bb1",
             "-bsp1",
+            "-sccUTF-8",
+            "-spd",
         };
 
         if (!string.IsNullOrWhiteSpace(options.Password))
@@ -39,14 +41,17 @@ internal sealed partial class SevenZipShellExtractRunner
 
         if (options.SelectedEntries is { Count: > 0 })
         {
-            arguments.AddRange(options.SelectedEntries);
+            arguments.AddRange(options.SelectedEntries.Select(entry => "-i!" + entry));
         }
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(archivePath));
 
         var startInfo = new ProcessStartInfo
         {
             FileName = _options.ExecutablePath,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
@@ -60,6 +65,7 @@ internal sealed partial class SevenZipShellExtractRunner
 
         using var process = new Process { StartInfo = startInfo };
         process.Start();
+        process.StandardInput.Close();
 
         using var registration = cancellationToken.Register(() => TryKill(process));
 

@@ -5,8 +5,7 @@
     Title="&#xC555;&#xCD95; &#xD480;&#xAE30;"
     CloseButtonText="&#xCDE8;&#xC18C;"
     PrimaryButtonText="&#xD480;&#xAE30;"
-    DefaultButton="Primary"
-    MinWidth="680">
+    DefaultButton="Primary">
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         HorizontalScrollMode="Disabled"

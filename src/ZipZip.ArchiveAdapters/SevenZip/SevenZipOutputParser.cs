@@ -11,9 +11,9 @@ public static class SevenZipOutputParser
 
         foreach (var rawLine in output.Split(["\r\n", "\n"], StringSplitOptions.None))
         {
-            var line = rawLine.Trim();
+            var line = rawLine;
 
-            if (string.IsNullOrEmpty(line))
+            if (string.IsNullOrWhiteSpace(line))
             {
                 TryAppendEntry(current, entries);
                 current.Clear();
@@ -27,11 +27,24 @@ public static class SevenZipOutputParser
             }
 
             var key = line[..separatorIndex].Trim();
-            var value = line[(separatorIndex + 3)..].Trim();
+            var value = line[(separatorIndex + 3)..];
             current[key] = value;
         }
 
         TryAppendEntry(current, entries);
+
+        // ZIP writers may store only files, without separate records for parent folders.
+        var paths = entries.Select(entry => (entry.Path ?? entry.Name).TrimEnd('/')).ToHashSet(StringComparer.Ordinal);
+        foreach (var entry in entries.ToArray())
+        {
+            var parent = (entry.Path ?? entry.Name).TrimEnd('/');
+            while (parent.LastIndexOf('/') is var index && index > 0)
+            {
+                parent = parent[..index];
+                if (paths.Add(parent))
+                    entries.Add(new ArchiveEntry { Path = parent, Name = parent[(parent.LastIndexOf('/') + 1)..], IsDirectory = true, TypeLabel = "폴더" });
+            }
+        }
         return entries;
     }
 
@@ -50,15 +63,18 @@ public static class SevenZipOutputParser
         var attributes = values.TryGetValue("Attributes", out var rawAttributes)
             ? rawAttributes
             : string.Empty;
+        path = path.Replace('\\', '/');
+        var isDirectory = (values.TryGetValue("Folder", out var folder) && folder == "+")
+            || attributes.Contains('D', StringComparison.OrdinalIgnoreCase) || path.EndsWith('/');
 
         entries.Add(new ArchiveEntry
         {
             Name = Path.GetFileName(path.TrimEnd('/', '\\')),
             Path = path,
-            TypeLabel = DetectTypeLabel(path, attributes),
+            TypeLabel = DetectTypeLabel(path, isDirectory),
             PackedSize = ParseLong(values, "Packed Size"),
             OriginalSize = ParseLong(values, "Size"),
-            IsDirectory = attributes.Contains('D', StringComparison.OrdinalIgnoreCase),
+            IsDirectory = isDirectory,
         });
     }
 
@@ -69,23 +85,23 @@ public static class SevenZipOutputParser
             : 0L;
     }
 
-    private static string DetectTypeLabel(string path, string attributes)
+    private static string DetectTypeLabel(string path, bool isDirectory)
     {
-        if (attributes.Contains('D', StringComparison.OrdinalIgnoreCase))
+        if (isDirectory)
         {
-            return "?대뜑";
+            return "폴더";
         }
 
         var extension = Path.GetExtension(path).ToLowerInvariant();
         return extension switch
         {
-            ".txt" or ".md" => "?띿뒪??臾몄꽌",
-            ".png" or ".jpg" or ".jpeg" or ".gif" => "?대?吏 ?뚯씪",
-            ".exe" => "?ㅽ뻾 ?뚯씪",
-            ".dll" => "?쇱씠釉뚮윭由??뚯씪",
-            ".pdf" => "PDF 臾몄꽌",
-            _ when string.IsNullOrEmpty(extension) => "?뚯씪",
-            _ => $"{extension.TrimStart('.').ToUpperInvariant()} ?뚯씪",
+            ".txt" or ".md" => "텍스트 문서",
+            ".png" or ".jpg" or ".jpeg" or ".gif" => "이미지 파일",
+            ".exe" => "실행 파일",
+            ".dll" => "라이브러리 파일",
+            ".pdf" => "PDF 문서",
+            _ when string.IsNullOrEmpty(extension) => "파일",
+            _ => $"{extension.TrimStart('.').ToUpperInvariant()} 파일",
         };
     }
 }

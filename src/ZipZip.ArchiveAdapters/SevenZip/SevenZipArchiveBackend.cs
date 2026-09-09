@@ -17,9 +17,9 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
         _runner = new SevenZipProcessRunner(options);
     }
 
-    public async Task<ArchiveSummary> OpenAsync(string archivePath, CancellationToken cancellationToken = default)
+    public async Task<ArchiveSummary> OpenAsync(string archivePath, CancellationToken cancellationToken = default, string? password = null)
     {
-        var result = await _runner.RunAsync(["l", "-slt", archivePath], cancellationToken);
+        var result = await ListAsync(archivePath, password, cancellationToken);
         EnsureSuccess(result, "압축 파일을 열지 못했습니다.");
 
         var entries = SevenZipOutputParser.ParseListOutput(result.StandardOutput);
@@ -33,43 +33,73 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
     public async Task ExtractAsync(
         string archivePath,
         ExtractionOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, IProgress<int>? progress = null)
     {
+        await ValidateEncryptedArchiveAsync(archivePath, options.Password, cancellationToken);
         var destinationPath = ResolveExtractionDestinationPath(archivePath, options);
 
         var arguments = new List<string>
         {
             "x",
-            archivePath,
             $"-o{destinationPath}",
             options.OverwriteExisting ? "-y" : "-aos",
+            "-spd",
         };
-
-        if (options.SelectedEntries is { Count: > 0 })
-        {
-            arguments.AddRange(options.SelectedEntries);
-        }
 
         if (!string.IsNullOrWhiteSpace(options.Password))
         {
             arguments.Add($"-p{options.Password}");
         }
 
-        var result = await _runner.RunAsync(arguments, cancellationToken);
+        if (options.SelectedEntries is { Count: > 0 })
+            arguments.AddRange(options.SelectedEntries.Select(entry => "-i!" + entry));
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(archivePath));
+
+        var result = await _runner.RunAsync(arguments, cancellationToken, progress);
         EnsureSuccess(result, "압축을 풀지 못했습니다.");
+    }
+
+    private Task<SevenZipProcessResult> ListAsync(string archivePath, string? password, CancellationToken cancellationToken)
+    {
+        var arguments = new List<string> { "l", "-slt" };
+        if (!string.IsNullOrEmpty(password)) arguments.Add("-p" + password);
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(archivePath));
+        return _runner.RunAsync(arguments, cancellationToken);
+    }
+
+    public async Task ValidateEncryptedArchiveAsync(string archivePath, string? password, CancellationToken cancellationToken = default)
+    {
+        var listing = await ListAsync(archivePath, password, cancellationToken);
+        EnsureSuccess(listing, "압축 파일을 확인하지 못했습니다.");
+        if (!listing.StandardOutput.Contains("Encrypted = +", StringComparison.Ordinal)) return;
+
+        // Wrong passwords can leave zero-byte files that a later -aos retry would skip.
+        // ponytail: encrypted archives are decoded twice; staged extraction if this becomes a bottleneck.
+        var arguments = new List<string> { "t" };
+        if (!string.IsNullOrEmpty(password)) arguments.Add("-p" + password);
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(archivePath));
+        EnsureSuccess(await _runner.RunAsync(arguments, cancellationToken), "압축 파일의 암호를 확인하지 못했습니다.");
     }
 
     public async Task CreateAsync(
         IReadOnlyList<string> inputPaths,
         CompressionOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, IProgress<int>? progress = null)
     {
+        if (File.Exists(options.OutputPath) || Directory.Exists(options.OutputPath) || File.Exists(options.OutputPath + ".001"))
+            throw new IOException("같은 이름의 파일이 있습니다. 기존 파일을 보존하려면 다른 이름을 입력해 주세요.");
+        if (options.EncryptFileNames && (options.Format != ArchiveFormat.SevenZip || string.IsNullOrEmpty(options.Password)))
+            throw new ArgumentException("파일 이름 암호화에는 7Z 형식과 암호가 필요합니다.");
+
         var arguments = new List<string>
         {
             "a",
             FormatArgument(options.Format),
             CompressionLevelArgument(options.Level),
-            options.OutputPath,
+            "-spd",
         };
 
         if (!string.IsNullOrWhiteSpace(options.Password))
@@ -87,18 +117,24 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
             arguments.Add($"-v{options.SplitSize}");
         }
 
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(options.OutputPath));
         foreach (var inputPath in inputPaths)
         {
-            arguments.Add(inputPath);
+            arguments.Add(Path.GetFullPath(inputPath));
         }
 
-        var result = await _runner.RunAsync(arguments, cancellationToken);
+        var result = await _runner.RunAsync(arguments, cancellationToken, progress);
         EnsureSuccess(result, "압축 파일을 만들지 못했습니다.");
     }
 
-    public async Task TestAsync(string archivePath, CancellationToken cancellationToken = default)
+    public async Task TestAsync(string archivePath, CancellationToken cancellationToken = default, string? password = null, IProgress<int>? progress = null)
     {
-        var result = await _runner.RunAsync(["t", archivePath], cancellationToken);
+        var arguments = new List<string> { "t" };
+        if (!string.IsNullOrEmpty(password)) arguments.Add("-p" + password);
+        arguments.Add("--");
+        arguments.Add(Path.GetFullPath(archivePath));
+        var result = await _runner.RunAsync(arguments, cancellationToken, progress);
         EnsureSuccess(result, "압축 파일 테스트에 실패했습니다.");
     }
 
@@ -158,6 +194,10 @@ public sealed class SevenZipArchiveBackend : IArchiveBackend
         {
             return;
         }
+
+        // 7-Zip writes the password prompt to stdout, but only "Break signaled" to stderr on EOF.
+        if (result.StandardOutput.Contains("Enter password", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("암호가 필요한 압축 파일입니다.");
 
         var details = string.IsNullOrWhiteSpace(result.StandardError)
             ? result.StandardOutput

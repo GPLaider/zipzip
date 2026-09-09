@@ -15,6 +15,7 @@ public sealed class AppServices
         OpenArchive = new OpenArchiveUseCase(backend);
         CreateArchive = new CreateArchiveUseCase(backend);
         ExtractArchive = new ExtractArchiveUseCase(backend);
+        TestArchive = new TestArchiveUseCase(backend);
     }
 
     public UserPreferencesService UserPreferences { get; }
@@ -30,4 +31,5 @@ public sealed class AppServices
     public CreateArchiveUseCase CreateArchive { get; }
 
     public ExtractArchiveUseCase ExtractArchive { get; }
+    public TestArchiveUseCase TestArchive { get; }
 }

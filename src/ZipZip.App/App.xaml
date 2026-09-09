@@ -20,6 +20,7 @@
                     <SolidColorBrush x:Key="ZipZipMutedForegroundBrush" Color="#FF5D6772" />
                     <SolidColorBrush x:Key="ZipZipBrandBrush" Color="#FF0F6CBD" />
                     <SolidColorBrush x:Key="ZipZipBrandStrongBrush" Color="#FF0B5CA5" />
+                    <SolidColorBrush x:Key="ZipZipOnBrandBrush" Color="#FFFFFFFF" />
                     <SolidColorBrush x:Key="ZipZipBrandSubtleBrush" Color="#FFDCEBFA" />
                     <SolidColorBrush x:Key="ZipZipSuccessSubtleBrush" Color="#FFE9F6EC" />
                     <SolidColorBrush x:Key="ZipZipSuccessForegroundBrush" Color="#FF156C2F" />
@@ -44,6 +45,7 @@
                     <SolidColorBrush x:Key="ZipZipMutedForegroundBrush" Color="#FFB6C0CB" />
                     <SolidColorBrush x:Key="ZipZipBrandBrush" Color="#FF67B3FF" />
                     <SolidColorBrush x:Key="ZipZipBrandStrongBrush" Color="#FF90C9FF" />
+                    <SolidColorBrush x:Key="ZipZipOnBrandBrush" Color="#FF102033" />
                     <SolidColorBrush x:Key="ZipZipBrandSubtleBrush" Color="#FF12314A" />
                     <SolidColorBrush x:Key="ZipZipSuccessSubtleBrush" Color="#FF213727" />
                     <SolidColorBrush x:Key="ZipZipSuccessForegroundBrush" Color="#FF97D8A8" />
@@ -62,7 +64,7 @@
                 <Setter Property="Background" Value="{ThemeResource ZipZipSurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource ZipZipStrokeBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
 
             <Style x:Key="ZipZipToolbarBorderStyle" TargetType="Border" BasedOn="{StaticResource ZipZipPanelBorderStyle}">
@@ -71,25 +73,25 @@
 
             <Style x:Key="ZipZipPrimaryButtonStyle" TargetType="Button">
                 <Setter Property="Padding" Value="10,4" />
-                <Setter Property="MinHeight" Value="28" />
-                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="MinHeight" Value="34" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Background" Value="{ThemeResource ZipZipBrandBrush}" />
-                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Foreground" Value="{ThemeResource ZipZipOnBrandBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource ZipZipBrandBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
 
             <Style x:Key="ZipZipSecondaryButtonStyle" TargetType="Button">
                 <Setter Property="Padding" Value="10,4" />
-                <Setter Property="MinHeight" Value="28" />
-                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="MinHeight" Value="34" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Background" Value="{ThemeResource ZipZipSurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource ZipZipStrokeBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
 
             <Style x:Key="ZipZipCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource ZipZipSecondaryButtonStyle}">
@@ -109,8 +111,8 @@
 
             <Style x:Key="ZipZipToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource ZipZipSecondaryButtonStyle}">
                 <Setter Property="Padding" Value="8,4" />
-                <Setter Property="MinHeight" Value="26" />
-                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="FontSize" Value="13" />
             </Style>
 
             <Style x:Key="ZipZipToolStripButtonStyle" TargetType="Button">
@@ -123,7 +125,7 @@
                 <Setter Property="Foreground" Value="{ThemeResource ZipZipToolStripForegroundBrush}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
@@ -135,12 +137,12 @@
             <Style x:Key="ZipZipBreadcrumbButtonStyle" TargetType="Button">
                 <Setter Property="Padding" Value="4,1" />
                 <Setter Property="MinHeight" Value="20" />
-                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
 
             <Style x:Key="ZipZipSectionTitleStyle" TargetType="TextBlock">
@@ -159,7 +161,7 @@
                 <Setter Property="Background" Value="{ThemeResource ZipZipSurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource ZipZipStrokeBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
 
             <Style x:Key="ZipZipPasswordBoxStyle" TargetType="PasswordBox">
@@ -168,7 +170,7 @@
                 <Setter Property="Background" Value="{ThemeResource ZipZipSurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource ZipZipStrokeBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

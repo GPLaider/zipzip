@@ -4,7 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     Title="ZipZip">
-    <Grid Background="{ThemeResource ZipZipWindowBackgroundBrush}">
+    <Grid Background="{ThemeResource ZipZipWindowBackgroundBrush}" KeyboardAcceleratorPlacementMode="Hidden">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="OnFileKeyboardAcceleratorInvoked" />
+            <KeyboardAccelerator Key="N" Modifiers="Control" Invoked="OnFileKeyboardAcceleratorInvoked" />
+        </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -16,8 +20,9 @@
             BorderBrush="{ThemeResource ZipZipStrokeBrush}"
             BorderThickness="0,0,0,1">
             <controls:MenuBarItem Title="&#xD30C;&#xC77C;">
-                <MenuFlyoutItem Click="OnOpenArchiveMenuClick" Text="&#xC555;&#xCD95; &#xD30C;&#xC77C; &#xC5F4;&#xAE30;..." />
-                <MenuFlyoutItem Click="OnCreateArchiveMenuClick" Text="&#xC0C8;&#xB85C; &#xC555;&#xCD95;&#xD558;&#xAE30;..." />
+                <MenuFlyoutItem Click="OnOpenArchiveMenuClick" Text="압축 파일 열기…" KeyboardAcceleratorTextOverride="Ctrl+O" />
+                <MenuFlyoutItem Click="OnCreateArchiveMenuClick" Text="새로 압축하기…" KeyboardAcceleratorTextOverride="Ctrl+N" />
+                <MenuFlyoutItem Click="OnCreateFolderMenuClick" Text="폴더 압축…" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem Click="OnSettingsMenuClick" Text="&#xC124;&#xC815;" />
                 <MenuFlyoutSeparator />

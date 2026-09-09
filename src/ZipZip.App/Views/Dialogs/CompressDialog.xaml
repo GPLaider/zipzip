@@ -6,7 +6,7 @@
     CloseButtonText="&#xCDE8;&#xC18C;"
     PrimaryButtonText="&#xC555;&#xCD95; &#xC2DC;&#xC791;"
     DefaultButton="Primary"
-    MinWidth="760">
+    PrimaryButtonClick="OnPrimaryButtonClick">
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         HorizontalScrollMode="Disabled"
@@ -14,6 +14,7 @@
         VerticalScrollBarVisibility="Auto"
         VerticalScrollMode="Auto">
         <StackPanel Padding="0,0,8,0" Spacing="8">
+            <InfoBar x:Name="ValidationInfoBar" IsOpen="False" Severity="Error" />
             <TextBlock
                 x:Name="SelectedItemsText"
                 Style="{StaticResource ZipZipCaptionStyle}"

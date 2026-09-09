@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace ZipZip.ShellExtension;
 
@@ -73,6 +74,7 @@ public sealed class ShellRegistrationService
                 RegisterArchiveMenu(appExecutablePath, shellHelperPath, extension, effectiveOptions);
             }
         }
+        SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
     }
 
     public void Unregister()
@@ -95,7 +97,11 @@ public sealed class ShellRegistrationService
                 classes.DeleteSubKeyTree($@"SystemFileAssociations\{extension}\shell\{commandKey}", throwOnMissingSubKey: false);
             }
         }
+        SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
     }
+
+    [DllImport("shell32.dll")]
+    private static extern void SHChangeNotify(uint eventId, uint flags, IntPtr item1, IntPtr item2);
 
     private static void RegisterCompressionMenu(
         string appExecutablePath,

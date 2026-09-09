@@ -15,13 +15,13 @@ public sealed class CreateArchiveUseCase
     public Task ExecuteAsync(
         IReadOnlyList<string> inputPaths,
         CompressionOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, IProgress<int>? progress = null)
     {
         if (inputPaths.Count == 0)
         {
             throw new ArgumentException("At least one input path is required.", nameof(inputPaths));
         }
 
-        return _archiveBackend.CreateAsync(inputPaths, options, cancellationToken);
+        return _archiveBackend.CreateAsync(inputPaths, options, cancellationToken, progress);
     }
 }

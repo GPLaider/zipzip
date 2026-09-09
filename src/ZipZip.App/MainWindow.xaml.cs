@@ -16,6 +16,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly ThemeService _themeService;
     private bool _initialWindowSizeApplied;
+    private bool _windowActive;
 
     public MainWindow(ThemeService themeService)
     {
@@ -24,6 +25,18 @@ public sealed partial class MainWindow : Window
         _themeService.ApplyTo(this);
         ApplyWindowIcon();
         Activated += OnInitialWindowActivated;
+        Activated += (_, args) =>
+        {
+            _windowActive = args.WindowActivationState != WindowActivationState.Deactivated;
+            if (!_windowActive) return;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_windowActive || RootFrame.XamlRoot is null) return;
+                var target = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(RootFrame.XamlRoot) as Control
+                    ?? Microsoft.UI.Xaml.Input.FocusManager.FindFirstFocusableElement(RootFrame) as Control;
+                target?.Focus(FocusState.Programmatic);
+            });
+        };
         RootFrame.Navigated += OnRootFrameNavigated;
     }
 
@@ -114,6 +127,16 @@ public sealed partial class MainWindow : Window
         await ShowCreateArchiveDialogAsync(files.Select(file => file.Path).ToArray());
     }
 
+    public async Task PickFolderAndCreateArchiveAsync()
+    {
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+        var folder = await picker.PickSingleFolderAsync();
+        if (folder is not null)
+            await ShowCreateArchiveDialogAsync([folder.Path]);
+    }
+
     public async Task ShowCreateArchiveDialogAsync(IReadOnlyList<string> inputPaths)
     {
         if (inputPaths.Count == 0)
@@ -145,16 +168,21 @@ public sealed partial class MainWindow : Window
         try
         {
             var options = dialog.BuildOptions();
-            await App.Services.CreateArchive.ExecuteAsync(inputPaths, options);
+            await RunArchiveOperationAsync("압축하는 중", (token, progress) => App.Services.CreateArchive.ExecuteAsync(inputPaths, options, token, progress));
             await App.Services.UserPreferences.SaveLastCompressionOutputDirectoryAsync(
                 Path.GetDirectoryName(options.OutputPath));
 
-            if (!ShowArchive(options.OutputPath))
+            var resultPath = string.IsNullOrWhiteSpace(options.SplitSize) ? options.OutputPath : options.OutputPath + ".001";
+            if (!ShowArchive(resultPath))
             {
                 await ShowErrorDialogAsync(
                     "\uC555\uCD95 \uC644\uB8CC",
                     "\uC555\uCD95 \uD30C\uC77C\uC744 \uB9CC\uB4E4\uC5C8\uC9C0\uB9CC \uACB0\uACFC \uD654\uBA74\uC744 \uC5F4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.");
             }
+        }
+        catch (OperationCanceledException)
+        {
+            await ShowErrorDialogAsync("압축 취소", "작업을 중지했습니다. 생성 중이던 압축 파일은 완성되지 않았을 수 있습니다.");
         }
         catch (Exception ex)
         {
@@ -238,6 +266,23 @@ public sealed partial class MainWindow : Window
     {
         _themeService.ApplyTo(this);
         UpdateWindowTitleForCurrentPage();
+        if (e.Content is FrameworkElement page) page.Loaded += OnPageLoaded;
+    }
+
+    private void OnPageLoaded(object sender, RoutedEventArgs e)
+    {
+        var page = (FrameworkElement)sender;
+        page.Loaded -= OnPageLoaded;
+        // Activation can precede navigation; establish focus once page controls exist.
+        (Microsoft.UI.Xaml.Input.FocusManager.FindFirstFocusableElement(page) as Control)
+            ?.Focus(FocusState.Programmatic);
+    }
+
+    private async void OnFileKeyboardAcceleratorInvoked(Microsoft.UI.Xaml.Input.KeyboardAccelerator sender, Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        if (sender.Key == Windows.System.VirtualKey.O) await OpenArchivePickerAsync();
+        else await PickInputsAndCreateArchiveAsync();
     }
 
     private async void OnOpenArchiveMenuClick(object sender, RoutedEventArgs e)
@@ -248,6 +293,57 @@ public sealed partial class MainWindow : Window
     private async void OnCreateArchiveMenuClick(object sender, RoutedEventArgs e)
     {
         await PickInputsAndCreateArchiveAsync();
+    }
+
+    public async Task RunArchiveOperationAsync(string title, Func<CancellationToken, IProgress<int>, Task> operation)
+    {
+        var root = await WaitForXamlRootAsync() ?? throw new InvalidOperationException("작업 창을 열 수 없습니다.");
+        using var cancellation = new CancellationTokenSource();
+        var bar = new ProgressBar { IsIndeterminate = true, MinWidth = 280 };
+        var status = new TextBlock { Text = "준비 중…", TextWrapping = TextWrapping.Wrap };
+        var elapsed = System.Diagnostics.Stopwatch.StartNew();
+        var active = true;
+        var updates = new Progress<int>(value =>
+        {
+            if (!active || cancellation.IsCancellationRequested) return;
+            bar.IsIndeterminate = false;
+            bar.Value = value;
+            status.Text = $"{value}% · 경과 {elapsed.Elapsed:mm\\:ss}";
+        });
+        var progress = new ContentDialog
+        {
+            XamlRoot = root,
+            Title = title,
+            CloseButtonText = "취소",
+            Content = new StackPanel
+            {
+                Spacing = 16,
+                Children =
+                {
+                    bar,
+                    status,
+                },
+            },
+        };
+        progress.CloseButtonClick += (_, args) =>
+        {
+            args.Cancel = true;
+            progress.Title = "작업을 중지하는 중";
+            cancellation.Cancel();
+        };
+        var showing = progress.ShowAsync();
+        try { await operation(cancellation.Token, updates); }
+        finally
+        {
+            active = false;
+            progress.Hide();
+            await showing;
+        }
+    }
+
+    private async void OnCreateFolderMenuClick(object sender, RoutedEventArgs e)
+    {
+        await PickFolderAndCreateArchiveAsync();
     }
 
     private void OnSettingsMenuClick(object sender, RoutedEventArgs e)
@@ -325,13 +421,12 @@ public sealed partial class MainWindow : Window
             var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
             var workArea = displayArea.WorkArea;
 
-            var targetWidth = Math.Min(1320, Math.Max(1180, workArea.Width - 80));
-            var targetHeight = Math.Min(920, Math.Max(820, workArea.Height - 80));
-
-            targetWidth = Math.Min(targetWidth, workArea.Width);
-            targetHeight = Math.Min(targetHeight, workArea.Height);
-
-            appWindow.Resize(new SizeInt32(targetWidth, targetHeight));
+            var targetWidth = Math.Min(1120, workArea.Width - 48);
+            var targetHeight = Math.Min(760, workArea.Height - 48);
+            appWindow.MoveAndResize(new RectInt32(
+                workArea.X + (workArea.Width - targetWidth) / 2,
+                workArea.Y + (workArea.Height - targetHeight) / 2,
+                targetWidth, targetHeight));
         }
         catch
         {

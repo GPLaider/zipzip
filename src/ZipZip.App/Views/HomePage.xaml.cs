@@ -44,6 +44,12 @@ public sealed partial class HomePage : Page
         App.MainWindowInstance?.ShowSettings();
     }
 
+    private async void OnCreateFolderClick(object sender, RoutedEventArgs e)
+    {
+        if (App.MainWindowInstance is not null)
+            await App.MainWindowInstance.PickFolderAndCreateArchiveAsync();
+    }
+
     private void OnRecentItemClick(object sender, ItemClickEventArgs e)
     {
         if (e.ClickedItem is RecentArchiveItem item)
