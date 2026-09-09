@@ -31,12 +31,14 @@
 
                     <TextBox
                         x:Name="OutputDirectoryTextBox"
+                        AutomationProperties.Name="압축 파일 저장 위치"
                         PlaceholderText="&#xC555;&#xCD95; &#xD30C;&#xC77C;&#xC744; &#xC800;&#xC7A5;&#xD560; &#xD3F4;&#xB354;&#xB97C; &#xC120;&#xD0DD;&#xD574; &#xC8FC;&#xC138;&#xC694;."
                         Style="{StaticResource ZipZipTextBoxStyle}" />
 
                     <Button
                         Grid.Column="1"
                         Click="OnBrowseOutputDirectoryClick"
+                        AutomationProperties.Name="압축 파일 저장 폴더 찾아보기"
                         Content="&#xCC3E;&#xC544;&#xBCF4;&#xAE30;"
                         Style="{StaticResource ZipZipSecondaryButtonStyle}" />
                 </Grid>

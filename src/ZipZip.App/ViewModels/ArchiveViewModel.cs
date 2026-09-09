@@ -423,6 +423,7 @@ public sealed class ArchiveEntryItemViewModel
     public string PackedSizeText { get; }
 
     public string OriginalSizeText { get; }
+    public string AccessibleName => $"{Name}, {TypeLabel}, 원본 크기 {OriginalSizeText}, 압축 크기 {PackedSizeText}";
 
     public string IconGlyph { get; }
 

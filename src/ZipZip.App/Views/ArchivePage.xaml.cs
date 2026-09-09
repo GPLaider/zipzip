@@ -151,6 +151,12 @@ public sealed partial class ArchivePage : Page
         await ExecuteExtractionWithPasswordRetryAsync(options, selectedItems.Count);
     }
 
+    private void OnEntryContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    {
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(args.ItemContainer,
+            args.InRecycleQueue ? string.Empty : (args.Item as ArchiveEntryItemViewModel)?.AccessibleName ?? string.Empty);
+    }
+
     private void OnEntriesSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.UpdateSelection(GetSelectedItems());

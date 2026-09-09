@@ -170,6 +170,7 @@ public sealed partial class CompressDialog : ContentDialog
 
     private void ApplyChoiceStyle(Button button, bool isSelected)
     {
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetItemStatus(button, isSelected ? "선택됨" : "선택 안 됨");
         button.Style = (Style)Microsoft.UI.Xaml.Application.Current.Resources[
             isSelected ? "ZipZipChoiceButtonSelectedStyle" : "ZipZipChoiceButtonStyle"];
     }

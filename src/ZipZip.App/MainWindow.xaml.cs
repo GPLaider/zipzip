@@ -300,6 +300,7 @@ public sealed partial class MainWindow : Window
         var root = await WaitForXamlRootAsync() ?? throw new InvalidOperationException("작업 창을 열 수 없습니다.");
         using var cancellation = new CancellationTokenSource();
         var bar = new ProgressBar { IsIndeterminate = true, MinWidth = 280 };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(bar, title + " 진행률");
         var status = new TextBlock { Text = "준비 중…", TextWrapping = TextWrapping.Wrap };
         var elapsed = System.Diagnostics.Stopwatch.StartNew();
         var active = true;

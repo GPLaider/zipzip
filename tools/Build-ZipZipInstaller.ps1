@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '0.2.0-preview',
+    [string]$Version = '0.2.1-preview',
     [string]$Dotnet = 'dotnet',
     [string]$ArtifactsRoot = (Join-Path $PSScriptRoot '..\artifacts\release'),
     [string]$SevenZipDirectory = 'C:\Program Files\7-Zip',
@@ -25,7 +25,8 @@ foreach ($name in @('License.txt','History.txt')) {
 }
 $dist = Join-Path $ArtifactsRoot 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-& $Iscc "/DStageDir=$stage" "/DOutputDir=$dist" "/DAppVersion=$Version" "/DOutputBaseFilename=ZipZip-Setup-$Version" (Join-Path $repo 'installer\ZipZip.iss')
+$numericVersion = ($Version -split '-')[0] + '.0'
+& $Iscc "/DStageDir=$stage" "/DOutputDir=$dist" "/DAppVersion=$Version" "/DNumericVersion=$numericVersion" "/DOutputBaseFilename=ZipZip-Setup-$Version" (Join-Path $repo 'installer\ZipZip.iss')
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed: $LASTEXITCODE" }
 $setup = Join-Path $dist "ZipZip-Setup-$Version.exe"
 if ($SignThumbprint) {

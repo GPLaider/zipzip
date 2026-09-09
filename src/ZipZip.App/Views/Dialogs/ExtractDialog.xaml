@@ -23,12 +23,14 @@
 
                     <TextBox
                         x:Name="DestinationPathTextBox"
+                        AutomationProperties.Name="압축 풀기 위치"
                         PlaceholderText="&#xC555;&#xCD95;&#xC744; &#xD480; &#xD3F4;&#xB354;&#xB97C; &#xC120;&#xD0DD;&#xD574; &#xC8FC;&#xC138;&#xC694;."
                         Style="{StaticResource ZipZipTextBoxStyle}" />
 
                     <Button
                         Grid.Column="1"
                         Click="OnBrowseClick"
+                        AutomationProperties.Name="압축을 풀 폴더 찾아보기"
                         Content="&#xCC3E;&#xC544;&#xBCF4;&#xAE30;"
                         Style="{StaticResource ZipZipSecondaryButtonStyle}" />
                 </Grid>

@@ -93,7 +93,8 @@
                 </Border>
                 <ProgressBar Grid.Row="1" IsIndeterminate="True" Visibility="{Binding LoadingVisibility}" />
                 <ListView x:Name="EntriesListView" Grid.Row="2" AutomationProperties.Name="압축 파일 내용" Background="Transparent" BorderThickness="0"
-                    DoubleTapped="OnEntriesDoubleTapped" ItemsSource="{Binding Entries}" SelectionChanged="OnEntriesSelectionChanged" SelectionMode="Extended">
+                    DoubleTapped="OnEntriesDoubleTapped" ItemsSource="{Binding Entries}" SelectionChanged="OnEntriesSelectionChanged" SelectionMode="Extended"
+                    ContainerContentChanging="OnEntryContainerContentChanging">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="MinHeight" Value="40" />

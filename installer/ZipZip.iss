@@ -40,7 +40,10 @@ OutputDir={#OutputDir}
 OutputBaseFilename={#OutputBaseFilename}
 SetupIconFile={#StageDir}\Assets\App\ZipZip.ico
 UninstallDisplayIcon={app}\ZipZip.App.exe
-VersionInfoVersion=0.2.0.0
+#ifndef NumericVersion
+  #define NumericVersion "0.2.1.0"
+#endif
+VersionInfoVersion={#NumericVersion}
 VersionInfoCompany=ZipZip Project
 VersionInfoProductName={#MyAppName}
 VersionInfoDescription={#MyAppName} Installer

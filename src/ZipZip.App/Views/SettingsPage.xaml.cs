@@ -380,12 +380,14 @@ public sealed partial class SettingsPage : Page
 
     private void ApplyChoiceStyle(Button button, bool isSelected)
     {
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetItemStatus(button, isSelected ? "선택됨" : "선택 안 됨");
         button.Style = (Style)Microsoft.UI.Xaml.Application.Current.Resources[
             isSelected ? "ZipZipChoiceButtonSelectedStyle" : "ZipZipChoiceButtonStyle"];
     }
 
     private void ApplySectionStyle(Button button, bool isSelected)
     {
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetItemStatus(button, isSelected ? "현재 설정 항목" : "선택 안 됨");
         button.Style = (Style)Resources[
             isSelected ? "SettingsNavButtonSelectedStyle" : "SettingsNavButtonStyle"];
     }
