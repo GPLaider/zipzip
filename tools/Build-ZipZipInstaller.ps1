@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '0.2.1-preview',
+    [string]$Version = '0.2.2-preview',
     [string]$Dotnet = 'dotnet',
     [string]$ArtifactsRoot = (Join-Path $PSScriptRoot '..\artifacts\release'),
     [string]$SevenZipDirectory = 'C:\Program Files\7-Zip',

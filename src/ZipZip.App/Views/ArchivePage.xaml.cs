@@ -234,6 +234,7 @@ public sealed partial class ArchivePage : Page
 
     private void OnCopyKeyboardAcceleratorInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
+        if (FocusManager.GetFocusedElement(XamlRoot) is TextBox or PasswordBox) return;
         var selectedItems = GetSelectedItems();
         if (selectedItems.Count == 0)
         {
@@ -249,8 +250,26 @@ public sealed partial class ArchivePage : Page
 
     private async void OnPasteKeyboardAcceleratorInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
+        if (FocusManager.GetFocusedElement(XamlRoot) is TextBox or PasswordBox) return;
         args.Handled = true;
         await HandleIncomingDataAsync(Clipboard.GetContent());
+    }
+
+    private void OnFindKeyboardAcceleratorInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        SearchBox.Focus(FocusState.Keyboard);
+        SearchBox.SelectAll();
+        args.Handled = true;
+    }
+
+    private void OnSearchKeyDown(object sender, KeyRoutedEventArgs args)
+    {
+        if (args.Key == Windows.System.VirtualKey.Escape)
+        {
+            ViewModel.SearchText = string.Empty;
+            EntriesListView.Focus(FocusState.Keyboard);
+            args.Handled = true;
+        }
     }
 
     private async Task HandleIncomingDataAsync(DataPackageView dataView)

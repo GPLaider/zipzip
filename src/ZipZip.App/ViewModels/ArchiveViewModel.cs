@@ -13,7 +13,10 @@ namespace ZipZip.App.ViewModels;
 
 public sealed class ArchiveViewModel : ObservableObject
 {
-    private readonly List<ArchiveEntryItemViewModel> _allEntries = [];
+    private readonly List<ArchiveEntry> _allEntries = [];
+    private IReadOnlyList<ArchiveEntryItemViewModel> _entries = [];
+    private string _searchText = string.Empty;
+    private int _sortIndex;
     private string _archiveName = string.Empty;
     private string _archivePath = string.Empty;
     private string _currentFolderPath = string.Empty;
@@ -96,6 +99,7 @@ public sealed class ArchiveViewModel : ObservableObject
             if (SetProperty(ref _isLoading, value))
             {
                 OnPropertyChanged(nameof(LoadingVisibility));
+                OnPropertyChanged(nameof(EmptyVisibility));
                 OnPropertyChanged(nameof(CanExtract));
                 OnPropertyChanged(nameof(CanExtractSelected));
             }
@@ -111,6 +115,7 @@ public sealed class ArchiveViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(HasError));
                 OnPropertyChanged(nameof(ErrorVisibility));
+                OnPropertyChanged(nameof(EmptyVisibility));
                 OnPropertyChanged(nameof(CanExtract));
                 OnPropertyChanged(nameof(CanExtractSelected));
             }
@@ -201,7 +206,26 @@ public sealed class ArchiveViewModel : ObservableObject
         }
     }
 
-    public ObservableCollection<ArchiveEntryItemViewModel> Entries { get; } = [];
+    public IReadOnlyList<ArchiveEntryItemViewModel> Entries
+    {
+        get => _entries;
+        private set => SetProperty(ref _entries, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set { if (SetProperty(ref _searchText, value)) RefreshEntries(); }
+    }
+
+    public int SortIndex
+    {
+        get => _sortIndex;
+        set { if (SetProperty(ref _sortIndex, value)) RefreshEntries(); }
+    }
+
+    public Visibility EmptyVisibility => !IsLoading && !HasError && Entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchText) ? "이 폴더는 비어 있습니다." : "검색 결과가 없습니다. 검색어를 바꾸거나 지워 주세요.";
 
     public ObservableCollection<BreadcrumbSegmentViewModel> BreadcrumbSegments { get; } = [];
 
@@ -220,13 +244,13 @@ public sealed class ArchiveViewModel : ObservableObject
             var summary = await useCase.ExecuteAsync(archivePath, cancellationToken, password);
 
             _allEntries.Clear();
-            _allEntries.AddRange(summary.Entries.Select(entry => new ArchiveEntryItemViewModel(entry)));
+            _allEntries.AddRange(summary.Entries);
             NavigateToFolder(string.Empty);
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            Entries.Clear();
+            Entries = [];
             _allEntries.Clear();
             BreadcrumbSegments.Clear();
             BreadcrumbSegments.Add(new BreadcrumbSegmentViewModel("\uB8E8\uD2B8", string.Empty));
@@ -307,25 +331,21 @@ public sealed class ArchiveViewModel : ObservableObject
     {
         CurrentFolderPath = NormalizePath(folderPath);
         RebuildBreadcrumbs();
+        _searchText = string.Empty;
+        OnPropertyChanged(nameof(SearchText));
+        RefreshEntries();
+    }
 
-        Entries.Clear();
-        foreach (var entry in _allEntries
-                     .Where(IsDirectChildOfCurrentFolder)
-                     .OrderByDescending(item => item.IsDirectory)
-                     .ThenBy(item => item.Name))
-        {
-            Entries.Add(entry);
-        }
-
+    private void RefreshEntries()
+    {
+        Entries = ZipZip.Application.ArchiveEntryQuery.Apply(_allEntries, CurrentFolderPath, SearchText, SortIndex)
+            .Select(entry => new ArchiveEntryItemViewModel(entry)).ToArray();
         SelectedCount = 0;
         SelectedOriginalSize = 0;
         OnPropertyChanged(nameof(EntrySummary));
         OnPropertyChanged(nameof(FooterSummary));
-    }
-
-    private bool IsDirectChildOfCurrentFolder(ArchiveEntryItemViewModel entry)
-    {
-        return GetParentPath(entry.InternalPath) == CurrentFolderPath;
+        OnPropertyChanged(nameof(EmptyVisibility));
+        OnPropertyChanged(nameof(EmptyMessage));
     }
 
     private void RebuildBreadcrumbs()

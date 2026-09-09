@@ -6,6 +6,7 @@
     <Page.KeyboardAccelerators>
         <KeyboardAccelerator Key="C" Modifiers="Control" Invoked="OnCopyKeyboardAcceleratorInvoked" />
         <KeyboardAccelerator Key="V" Modifiers="Control" Invoked="OnPasteKeyboardAcceleratorInvoked" />
+        <KeyboardAccelerator Key="F" Modifiers="Control" Invoked="OnFindKeyboardAcceleratorInvoked" />
     </Page.KeyboardAccelerators>
     <Grid Padding="24" RowSpacing="14" AllowDrop="True" DragOver="OnRootDragOver" Drop="OnRootDrop">
         <Grid.RowDefinitions>
@@ -44,6 +45,7 @@
         </ScrollViewer>
 
         <Grid Grid.Row="2" ColumnSpacing="10">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -68,6 +70,16 @@
                     </ItemsControl>
                 </ScrollViewer>
             </Border>
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0" ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
+                <TextBox x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="현재 폴더에서 찾기 (Ctrl+F)" AutomationProperties.Name="현재 폴더에서 파일 이름 찾기"
+                    KeyDown="OnSearchKeyDown" Style="{StaticResource ZipZipTextBoxStyle}" />
+                <ComboBox Grid.Column="1" SelectedIndex="{Binding SortIndex, Mode=TwoWay}" HorizontalAlignment="Stretch" AutomationProperties.Name="파일 목록 정렬">
+                    <ComboBoxItem Content="이름 오름차순" /><ComboBoxItem Content="이름 내림차순" />
+                    <ComboBoxItem Content="큰 파일 먼저" /><ComboBoxItem Content="작은 파일 먼저" />
+                </ComboBox>
+            </Grid>
         </Grid>
 
         <Border Grid.Row="3" Style="{StaticResource ZipZipPanelBorderStyle}">
@@ -128,6 +140,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+                <TextBlock Grid.Row="2" Text="{Binding EmptyMessage}" Visibility="{Binding EmptyVisibility}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="24" Foreground="{ThemeResource ZipZipMutedForegroundBrush}" />
             </Grid>
         </Border>
 

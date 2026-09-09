@@ -41,7 +41,7 @@ OutputBaseFilename={#OutputBaseFilename}
 SetupIconFile={#StageDir}\Assets\App\ZipZip.ico
 UninstallDisplayIcon={app}\ZipZip.App.exe
 #ifndef NumericVersion
-  #define NumericVersion "0.2.1.0"
+  #define NumericVersion "0.2.2.0"
 #endif
 VersionInfoVersion={#NumericVersion}
 VersionInfoCompany=ZipZip Project
